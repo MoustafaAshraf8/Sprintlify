@@ -25,8 +25,8 @@ jobs:
 
       - name: Set Worker Secrets
         run: |
-          npx wrangler secret delete SUPABASE_URL --env dev --force || true
-          npx wrangler secret delete SUPABASE_ANON_KEY --env dev --force || true
+          echo "y" | npx wrangler secret delete SUPABASE_URL --env dev || true
+          echo "y" | npx wrangler secret delete SUPABASE_ANON_KEY --env dev || true
           printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env dev
           printf '%s' "$SUPABASE_ANON_KEY" | npx wrangler secret put SUPABASE_ANON_KEY --env dev
         env:
