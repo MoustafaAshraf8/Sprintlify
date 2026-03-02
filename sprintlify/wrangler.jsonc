@@ -3,5 +3,14 @@
   "name": "sprintlify",
   "main": "src/index.ts",
   "compatibility_date": "2026-02-24",
-  "vars": { "SUPABASE_URL": "", "SUPABASE_ANON_KEY": "" },
+  "env": {
+    "dev": {
+      "name": "sprintlify-dev",
+      "vars": { "SUPABASE_URL": "", "SUPABASE_ANON_KEY": "" },
+    },
+    "production": {
+      "name": "sprintlify-production",
+      "vars": { "SUPABASE_URL": "", "SUPABASE_ANON_KEY": "" },
+    },
+  },
 }
