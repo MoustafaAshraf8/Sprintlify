@@ -6,11 +6,9 @@
   "env": {
     "dev": {
       "name": "sprintlify-dev",
-      "vars": { "SUPABASE_URL": "", "SUPABASE_ANON_KEY": "" },
     },
     "production": {
       "name": "sprintlify-production",
-      "vars": { "SUPABASE_URL": "", "SUPABASE_ANON_KEY": "" },
     },
   },
 }

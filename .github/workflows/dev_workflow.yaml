@@ -17,6 +17,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Delete Existing Worker
+        run: npx wrangler delete --env dev --force || true
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Build & Deploy Worker
         run: npx wrangler deploy --env dev
         env:
@@ -25,8 +31,6 @@ jobs:
 
       - name: Set Worker Secrets
         run: |
-          echo "y" | npx wrangler secret delete SUPABASE_URL --env dev || true
-          echo "y" | npx wrangler secret delete SUPABASE_ANON_KEY --env dev || true
           printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env dev
           printf '%s' "$SUPABASE_ANON_KEY" | npx wrangler secret put SUPABASE_ANON_KEY --env dev
         env:
