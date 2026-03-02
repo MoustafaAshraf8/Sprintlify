@@ -4,6 +4,28 @@ on:
       - dev
 
 jobs:
+  Database-Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase Project
+        run: supabase link --project-ref $SUPABASE_PROJECT_ID
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCOUNT_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.DEV_SUPABASE_DEV_PROJECT_ID }}
+
+      - name: Push DB Migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCOUNT_ACCESS_TOKEN }}
+
   Worker-Deploy:
     name: Worker-Deploy
     defaults:
