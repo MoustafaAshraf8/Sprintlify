@@ -1,7 +1,12 @@
 import { Hono } from "hono";
-import { getSupabase, supabaseMiddleware } from "./middleware/auth.middleware";
+import {
+  getDrizzleClient,
+  getSupabase,
+  supabaseMiddleware,
+} from "./middleware/auth.middleware";
+import { Bindings } from "./bindings";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.use("*", supabaseMiddleware());
 
@@ -13,6 +18,17 @@ app.get("/users", async (c) => {
    `);
 
   return c.json(data);
+});
+
+app.get("/users/drizzle", async (c) => {
+  const db = getDrizzleClient(c);
+  const result = await db.query.users.findMany({
+    with: {
+      posts: true,
+    },
+  });
+
+  return c.json(result);
 });
 
 app.post("/users", async (c) => {
@@ -32,6 +48,7 @@ app.post("/users", async (c) => {
 });
 
 app.get("/posts", (c) => {
+  console.log(c.env.SUPABASE_URL);
   return c.json({
     message: "Hello world!",
   });

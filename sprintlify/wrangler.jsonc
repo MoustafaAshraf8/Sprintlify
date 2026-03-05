@@ -3,6 +3,7 @@
   "name": "sprintlify",
   "main": "src/index.ts",
   "compatibility_date": "2026-02-24",
+  "compatibility_flags": ["nodejs_compat"],
   "env": {
     "dev": {
       "name": "sprintlify-dev",

@@ -4,14 +4,23 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
+    "supabase:migrate-local": "npx supabase db push --local",
+    "supabase:update-types-local": "npx supabase gen types typescript --local > ./db/database.types.ts",
+    "supabase:restart-local": "npx supabase stop && npx supabase start",
+    "supabase:hard-reset-local": "npx supabase stop --no-backup && npx supabase start",
+    "drizzle:introspect-local": "npx drizzle-kit pull --dialect=postgresql --out ./drizzle --url=postgresql://postgres:postgres@127.0.0.1:54322/postgres",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
     "@types/pg": "^8.16.0",
     "dotenv": "^17.3.1",
+    "drizzle-kit": "^0.31.9",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.12.2",
     "pg": "^8.18.0",
+    "postgres": "^3.4.8",
+    "supabase": "^2.76.16",
     "tsx": "^4.21.0"
   },
   "devDependencies": {
