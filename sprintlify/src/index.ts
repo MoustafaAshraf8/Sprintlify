@@ -47,11 +47,11 @@ app.post("/users", async (c) => {
   return c.json({ data }, 201);
 });
 
-app.get("/posts", (c) => {
-  console.log(c.env.SUPABASE_URL);
-  return c.json({
-    message: "Hello world!",
-  });
+app.get("/posts/drizzle", async (c) => {
+  const db = getDrizzleClient(c);
+  const result = await db.query.posts.findMany();
+
+  return c.json(result);
 });
 
 export default app;
