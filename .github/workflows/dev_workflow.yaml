@@ -55,7 +55,8 @@ jobs:
           SUPABASE_PROJECT_ID: ${{ secrets.DEV_SUPABASE_PROJECT_ID }}
 
       - name: Generate Drizzle schema
-        run: npx drizzle-kit pull --dialect=postgresql --out ./drizzle --url=$SUPABASE_URL
+        run: |
+          printf '%s' "$SUPABASE_DB_URL" | npx drizzle-kit pull --dialect=postgresql --out ./drizzle --url=SUPABASE_DB_URL
         env:
           SUPABASE_DB_URL: ${{ secrets.DEV_SUPABASE_DB_URL }}
 
