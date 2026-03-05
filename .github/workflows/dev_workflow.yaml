@@ -51,6 +51,7 @@ jobs:
       - name: Generate Supabase types
         run: npx supabase gen types --lang=typescript --project-id $SUPABASE_PROJECT_ID > ./db/database.types.ts
         env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCOUNT_ACCESS_TOKEN }}
           SUPABASE_PROJECT_ID: ${{ secrets.DEV_SUPABASE_PROJECT_ID }}
 
       - name: Generate Drizzle schema
