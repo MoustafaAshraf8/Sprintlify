@@ -43,7 +43,7 @@ jobs:
         run: npm ci
 
       - name: Link Supabase Project (for types generation)
-        run: supabase link --project-ref $SUPABASE_PROJECT_ID
+        run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCOUNT_ACCESS_TOKEN }}
           SUPABASE_PROJECT_ID: ${{ secrets.DEV_SUPABASE_PROJECT_ID }}
