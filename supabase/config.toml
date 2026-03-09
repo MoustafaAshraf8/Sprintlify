@@ -80,7 +80,7 @@ enabled = true
 # allowed_mime_types = ["image/png", "image/jpeg"]
 
 [auth]
-enabled = false
+enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
 site_url = "http://127.0.0.1:3000"
