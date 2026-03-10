@@ -80,16 +80,6 @@ export const ticketComments = pgTable("ticket_comments", {
 	foreignKey({
 			columns: [table.ticketId],
 			foreignColumns: [tickets.ticketId],
-			name: "ticket_comments_ticket_id_fkey"
-		}).onDelete("cascade"),
-	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.userId],
-			name: "ticket_comments_user_id_fkey"
-		}).onDelete("cascade"),
-	foreignKey({
-			columns: [table.ticketId],
-			foreignColumns: [tickets.ticketId],
 			name: "ticket_comments_ticket_id_fk"
 		}).onUpdate("cascade").onDelete("set null"),
 	foreignKey({
@@ -97,4 +87,14 @@ export const ticketComments = pgTable("ticket_comments", {
 			foreignColumns: [users.userId],
 			name: "ticket_comments_user_id_fk"
 		}).onUpdate("cascade").onDelete("set null"),
+	foreignKey({
+			columns: [table.ticketId],
+			foreignColumns: [tickets.ticketId],
+			name: "ticket_comments_ticket_id_fkey"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.userId],
+			name: "ticket_comments_user_id_fkey"
+		}).onDelete("cascade"),
 ]);

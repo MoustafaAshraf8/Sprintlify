@@ -1,57 +1,13 @@
 import { Hono } from "hono";
-import {
-  getDrizzleClient,
-  getSupabase,
-  supabaseMiddleware,
-} from "./middleware/auth.middleware";
-import { Bindings } from "./bindings";
+import { AppContext } from "./types/AppContext";
+import { dbAuthMiddleware } from "./middleware/dbAuthMiddleware";
+import authRouter from "./route/authRoute";
+import { apiRoute } from "./constant/constant_url";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<AppContext>();
 
-app.use("*", supabaseMiddleware());
+app.use("*", dbAuthMiddleware());
 
-app.get("/users", async (c) => {
-  const supabase = getSupabase(c);
-  const { data, error } = await supabase.from("users").select(`
-   id,
-   email
-   `);
-
-  return c.json(data);
-});
-
-app.get("/users/drizzle", async (c) => {
-  const db = getDrizzleClient(c);
-  const result = await db.query.users.findMany({
-    with: {
-      posts: true,
-    },
-  });
-
-  return c.json(result);
-});
-
-app.post("/users", async (c) => {
-  const supabase = getSupabase(c);
-  const body = await c.req.json();
-
-  const { data, error } = await supabase
-    .from("users")
-    .insert(body.users)
-    .select();
-
-  if (error) {
-    return c.json({ error: error.message }, 400);
-  }
-
-  return c.json({ data }, 201);
-});
-
-app.get("/posts/drizzle", async (c) => {
-  const db = getDrizzleClient(c);
-  const result = await db.query.posts.findMany();
-
-  return c.json(result);
-});
+app.route(apiRoute.auth, authRouter);
 
 export default app;
