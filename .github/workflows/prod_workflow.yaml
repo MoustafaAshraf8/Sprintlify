@@ -69,8 +69,12 @@ jobs:
         run: |
           printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env $ENV
           printf '%s' "$SUPABASE_ANON_KEY" | npx wrangler secret put SUPABASE_ANON_KEY --env $ENV
+          printf '%s' "$JWT_SECRET" | npx wrangler secret put JWT_SECRET --env $ENV
+          printf '%s' "$JWT_REFRESH_SECRET" | npx wrangler secret put JWT_REFRESH_SECRET --env $ENV
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SUPABASE_URL: ${{ secrets.PROD_SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.PROD_SUPABASE_ANON_KEY }}
+          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.PROD_JWT_REFRESH_SECRET }}
