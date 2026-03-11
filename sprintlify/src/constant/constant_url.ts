@@ -6,4 +6,5 @@ export const apiRoute = {
   logout: "singout",
   refresh: "/refresh",
   authenticate: "/authenticate",
+  projects: "/api/projects",
 };
