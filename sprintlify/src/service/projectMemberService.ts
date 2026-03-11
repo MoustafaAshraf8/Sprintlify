@@ -146,6 +146,7 @@ export const removeProjectMember = async (params: {
     drizzleClient,
     supabaseClient,
     projectId,
+    requesterId,
     userId,
   });
 };

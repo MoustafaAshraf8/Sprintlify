@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { projectMembers, users } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
+import { findProjectById } from "./projectModel";
 
 // ─── find member ──────────────────────────────────────────────────────────────
 
@@ -76,9 +77,42 @@ export const deleteProjectMember = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
   projectId: string;
+  requesterId: string;
   userId: string;
 }) => {
-  const { drizzleClient, projectId, userId } = { ...params };
+  const { drizzleClient, supabaseClient, projectId, requesterId, userId } = {
+    ...params,
+  };
+
+  // verify project exists
+  const project = await findProjectById({
+    drizzleClient,
+    supabaseClient,
+    projectId,
+  });
+  if (!project) throw new Error("Project not found");
+
+  // verify requester is the owner
+  if (project.ownerId !== requesterId) throw new Error("Forbidden");
+
+  // prevent owner from being removed
+  if (userId === project.ownerId) {
+    throw new Error("Owner cannot be removed from the project");
+  }
+
+  // prevent user from removing themselves  ← new check
+  if (userId === requesterId) {
+    throw new Error("You cannot remove yourself from the project");
+  }
+
+  // verify target user is actually a member
+  const isMember = await findProjectMember({
+    drizzleClient,
+    supabaseClient,
+    projectId,
+    userId,
+  });
+  if (!isMember) throw new Error("User is not a member of this project");
 
   await drizzleClient
     .delete(projectMembers)
