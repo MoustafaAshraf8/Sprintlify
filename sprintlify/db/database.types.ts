@@ -84,6 +84,77 @@ export type Database = {
           },
         ]
       }
+      project_members: {
+        Row: {
+          joined_at: string | null
+          project_id: string
+          project_security_level: string | null
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string | null
+          project_id: string
+          project_security_level?: string | null
+          user_id: string
+        }
+        Update: {
+          joined_at?: string | null
+          project_id?: string
+          project_security_level?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fk"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_members_user_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          name: string
+          owner_id: string
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          name: string
+          owner_id: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          name?: string
+          owner_id?: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_owner_fk"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       refresh_tokens: {
         Row: {
           created_at: string | null
@@ -179,6 +250,7 @@ export type Database = {
           description: string | null
           label: string | null
           priority: string | null
+          project_id: string | null
           reporter_id: string | null
           status: string | null
           ticket_id: string
@@ -191,6 +263,7 @@ export type Database = {
           description?: string | null
           label?: string | null
           priority?: string | null
+          project_id?: string | null
           reporter_id?: string | null
           status?: string | null
           ticket_id?: string
@@ -203,6 +276,7 @@ export type Database = {
           description?: string | null
           label?: string | null
           priority?: string | null
+          project_id?: string | null
           reporter_id?: string | null
           status?: string | null
           ticket_id?: string
@@ -210,6 +284,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tickets_project_id_fk"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
+          },
           {
             foreignKeyName: "tickets_users_assignee_fk"
             columns: ["assignee_id"]

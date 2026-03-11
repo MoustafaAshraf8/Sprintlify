@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, refreshTokens, posts, tickets, ticketComments } from "./schema";
+import { users, refreshTokens, projects, tickets, posts, ticketComments, projectMembers } from "./schema";
 
 export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 	user: one(users, {
@@ -10,26 +10,30 @@ export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 
 export const usersRelations = relations(users, ({many}) => ({
 	refreshTokens: many(refreshTokens),
-	posts: many(posts),
+	projects: many(projects),
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
 	}),
 	tickets_reporterId: many(tickets, {
 		relationName: "tickets_reporterId_users_userId"
 	}),
+	posts: many(posts),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
 	}),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
 	}),
+	projectMembers: many(projectMembers),
 }));
 
-export const postsRelations = relations(posts, ({one}) => ({
+export const projectsRelations = relations(projects, ({one, many}) => ({
 	user: one(users, {
-		fields: [posts.userId],
+		fields: [projects.ownerId],
 		references: [users.userId]
 	}),
+	tickets: many(tickets),
+	projectMembers: many(projectMembers),
 }));
 
 export const ticketsRelations = relations(tickets, ({one, many}) => ({
@@ -43,11 +47,22 @@ export const ticketsRelations = relations(tickets, ({one, many}) => ({
 		references: [users.userId],
 		relationName: "tickets_reporterId_users_userId"
 	}),
+	project: one(projects, {
+		fields: [tickets.projectId],
+		references: [projects.projectId]
+	}),
 	ticketComments_ticketId: many(ticketComments, {
 		relationName: "ticketComments_ticketId_tickets_ticketId"
 	}),
 	ticketComments_ticketId: many(ticketComments, {
 		relationName: "ticketComments_ticketId_tickets_ticketId"
+	}),
+}));
+
+export const postsRelations = relations(posts, ({one}) => ({
+	user: one(users, {
+		fields: [posts.userId],
+		references: [users.userId]
 	}),
 }));
 
@@ -71,5 +86,16 @@ export const ticketCommentsRelations = relations(ticketComments, ({one}) => ({
 		fields: [ticketComments.userId],
 		references: [users.userId],
 		relationName: "ticketComments_userId_users_userId"
+	}),
+}));
+
+export const projectMembersRelations = relations(projectMembers, ({one}) => ({
+	project: one(projects, {
+		fields: [projectMembers.projectId],
+		references: [projects.projectId]
+	}),
+	user: one(users, {
+		fields: [projectMembers.userId],
+		references: [users.userId]
 	}),
 }));

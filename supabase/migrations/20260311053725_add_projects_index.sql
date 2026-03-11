@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS projects_owner_id_index ON projects(owner_id);
