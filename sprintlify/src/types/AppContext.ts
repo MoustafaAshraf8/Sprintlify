@@ -13,7 +13,7 @@ type Bindings = {
 type Variables = {
   supabaseClient: SupabaseClientType;
   drizzleClient: DrizzleClientType;
-  user: { id: string; role: string };
+  user: { id: string; securityLevel: string };
 };
 
 export type AppContext = {
