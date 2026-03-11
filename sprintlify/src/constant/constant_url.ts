@@ -7,4 +7,5 @@ export const apiRoute = {
   refresh: "/refresh",
   authenticate: "/authenticate",
   projects: "/api/projects",
+  projectMembers: "/api/projects/:projectId/members",
 };

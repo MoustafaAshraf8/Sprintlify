@@ -86,7 +86,7 @@ export const createProject = async (params: {
     data: {
       projectId: project.projectId,
       userId: userId,
-      role: "owner",
+      project_security_level: "owner",
     },
   });
 
