@@ -1,14 +1,15 @@
 import { relations } from "drizzle-orm/relations";
-import { users, posts, tickets, ticketComments } from "./schema";
+import { users, refreshTokens, posts, tickets, ticketComments } from "./schema";
 
-export const postsRelations = relations(posts, ({one}) => ({
+export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 	user: one(users, {
-		fields: [posts.userId],
+		fields: [refreshTokens.userId],
 		references: [users.userId]
 	}),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
+	refreshTokens: many(refreshTokens),
 	posts: many(posts),
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
@@ -21,6 +22,13 @@ export const usersRelations = relations(users, ({many}) => ({
 	}),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
+	}),
+}));
+
+export const postsRelations = relations(posts, ({one}) => ({
+	user: one(users, {
+		fields: [posts.userId],
+		references: [users.userId]
 	}),
 }));
 

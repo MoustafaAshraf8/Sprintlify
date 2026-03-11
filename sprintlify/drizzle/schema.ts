@@ -1,7 +1,24 @@
-import { pgTable, foreignKey, unique, check, uuid, text, integer, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, unique, uuid, text, timestamp, check, integer } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
+
+export const refreshTokens = pgTable("refresh_tokens", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	userId: uuid("user_id").notNull(),
+	token: text().notNull(),
+	expiresAt: timestamp("expires_at", { withTimezone: true, mode: 'string' }).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("idx_refresh_tokens_token").using("btree", table.token.asc().nullsLast().op("text_ops")),
+	index("idx_refresh_tokens_user_id").using("btree", table.userId.asc().nullsLast().op("uuid_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.userId],
+			name: "refresh_tokens_user_id_fk"
+		}).onUpdate("cascade").onDelete("cascade"),
+	unique("refresh_tokens_unique_token_key").on(table.token),
+]);
 
 export const posts = pgTable("posts", {
 	id: uuid().defaultRandom().primaryKey().notNull(),

@@ -3,6 +3,7 @@ export const apiRoute = {
   auth: "/api/auth",
   register: "/register",
   login: "login",
+  logout: "singout",
   refresh: "/refresh",
   authenticate: "/authenticate",
 };
