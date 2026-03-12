@@ -24,4 +24,13 @@ app.route(apiRoute.ticketComments, ticketCommentRouter);
 app.route(apiRoute.ticketHistory, ticketHistoryRouter);
 app.route(apiRoute.users, userRouter);
 
+app.notFound((c) => {
+  return c.json({ message: "Route not found" }, 404);
+});
+
+app.onError((err, c) => {
+  console.error(`[ERROR] ${err.message}`, err.stack);
+  return c.json({ message: "Internal server error" }, 500);
+});
+
 export default app;
