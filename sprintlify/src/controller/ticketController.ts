@@ -1,6 +1,10 @@
 import { Context } from "hono";
 import { AppContext } from "../types/AppContext";
-import { CreateTicketDto, UpdateTicketDto } from "../dto/ticketDto";
+import {
+  CreateTicketDto,
+  TicketFilterDto,
+  UpdateTicketDto,
+} from "../dto/ticketDto";
 import * as ticketService from "../service/ticketService";
 
 const getCtxVars = (c: Context<AppContext>) => ({
@@ -23,6 +27,11 @@ const getStatus = (message: string) =>
 export const getTickets = async (c: Context<AppContext>) => {
   const projectId = c.req.param("projectId");
 
+  // parse query params
+  const query = c.req.query();
+  const parsed = TicketFilterDto.safeParse(query);
+  if (!parsed.success) return c.json({ errors: parsed.error.flatten() }, 400);
+
   try {
     const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
     const result = await ticketService.getTickets({
@@ -30,6 +39,7 @@ export const getTickets = async (c: Context<AppContext>) => {
       supabaseClient,
       projectId,
       requesterId,
+      filters: parsed.data,
     });
     return c.json(result, 200);
   } catch (err: any) {

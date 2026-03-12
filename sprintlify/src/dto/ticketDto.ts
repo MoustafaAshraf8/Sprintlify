@@ -21,5 +21,20 @@ export const UpdateTicketDto = z.object({
   assigneeId: z.string().uuid().optional(),
 });
 
+export const TicketFilterDto = z.object({
+  status: z.enum(["open", "in progress", "review", "closed"]).optional(),
+  priority: z.enum(["critical", "high", "medium", "low"]).optional(),
+  assigneeId: z.string().uuid().optional(),
+  label: z
+    .enum(["bug", "feature", "infra", "docs", "security", "perf"])
+    .optional(),
+  search: z.string().optional(),
+  sortBy: z.enum(["createdAt", "priority", "status"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(10),
+});
+
 export type CreateTicketDtoType = z.infer<typeof CreateTicketDto>;
 export type UpdateTicketDtoType = z.infer<typeof UpdateTicketDto>;
+export type TicketFilterDtoType = z.infer<typeof TicketFilterDto>;

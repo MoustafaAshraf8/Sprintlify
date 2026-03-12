@@ -1,6 +1,10 @@
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
-import { CreateTicketDtoType, UpdateTicketDtoType } from "../dto/ticketDto";
+import {
+  CreateTicketDtoType,
+  TicketFilterDtoType,
+  UpdateTicketDtoType,
+} from "../dto/ticketDto";
 import {
   findTicketsByProjectId,
   findTicketById,
@@ -41,8 +45,9 @@ export const getTickets = async (params: {
   supabaseClient: SupabaseClientType;
   projectId: string;
   requesterId: string;
+  filters: TicketFilterDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, requesterId } = {
+  const { drizzleClient, supabaseClient, projectId, requesterId, filters } = {
     ...params,
   };
 
@@ -58,6 +63,7 @@ export const getTickets = async (params: {
     drizzleClient,
     supabaseClient,
     projectId,
+    filters,
   });
 };
 
