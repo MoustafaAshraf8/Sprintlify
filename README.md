@@ -1,5 +1,30 @@
 # Sprintlify
 
+Sprintlify is a team ticket management REST API built for developer teams to organize projects, track issues, and collaborate efficiently.
+
+Built with **Hono** on **Cloudflare Workers**, backed by **Supabase** (PostgreSQL) and **Drizzle ORM**.
+
+## Features
+
+- JWT authentication with stateful refresh tokens and reuse detection
+- Project management with role-based membership
+- Ticket tracking with priority, status, labels, and assignees
+- Ticket filtering, search, and pagination
+- Ticket history — full audit log of every field change
+- Comments on tickets
+- Admin and member access levels
+
+## Tech Stack
+
+| Layer      | Technology            |
+| ---------- | --------------------- |
+| Runtime    | Cloudflare Workers    |
+| Framework  | Hono                  |
+| Database   | Supabase (PostgreSQL) |
+| ORM        | Drizzle ORM           |
+| Validation | Zod                   |
+| Auth       | JWT + bcryptjs        |
+
 ### 1. Clone the repository
 
 ```
