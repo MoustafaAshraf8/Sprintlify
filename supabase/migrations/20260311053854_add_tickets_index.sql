@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tickets_project ON tickets (project_id);

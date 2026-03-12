@@ -84,6 +84,109 @@ export type Database = {
           },
         ]
       }
+      project_members: {
+        Row: {
+          joined_at: string | null
+          project_id: string
+          project_security_level: string | null
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string | null
+          project_id: string
+          project_security_level?: string | null
+          user_id: string
+        }
+        Update: {
+          joined_at?: string | null
+          project_id?: string
+          project_security_level?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fk"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_members_user_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          name: string
+          owner_id: string
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          name: string
+          owner_id: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          name?: string
+          owner_id?: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_owner_fk"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      refresh_tokens: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refresh_tokens_user_id_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ticket_comments: {
         Row: {
           body: string
@@ -140,6 +243,51 @@ export type Database = {
           },
         ]
       }
+      ticket_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          field: string
+          new_value: string | null
+          old_value: string | null
+          ticket_history_id: string
+          ticket_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          field: string
+          new_value?: string | null
+          old_value?: string | null
+          ticket_history_id?: string
+          ticket_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          field?: string
+          new_value?: string | null
+          old_value?: string | null
+          ticket_history_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_history_changed_by_fk"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ticket_history_ticket_history_id_fk"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["ticket_id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           assignee_id: string | null
@@ -147,6 +295,7 @@ export type Database = {
           description: string | null
           label: string | null
           priority: string | null
+          project_id: string | null
           reporter_id: string | null
           status: string | null
           ticket_id: string
@@ -159,6 +308,7 @@ export type Database = {
           description?: string | null
           label?: string | null
           priority?: string | null
+          project_id?: string | null
           reporter_id?: string | null
           status?: string | null
           ticket_id?: string
@@ -171,6 +321,7 @@ export type Database = {
           description?: string | null
           label?: string | null
           priority?: string | null
+          project_id?: string | null
           reporter_id?: string | null
           status?: string | null
           ticket_id?: string
@@ -178,6 +329,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tickets_project_id_fk"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
+          },
           {
             foreignKeyName: "tickets_users_assignee_fk"
             columns: ["assignee_id"]

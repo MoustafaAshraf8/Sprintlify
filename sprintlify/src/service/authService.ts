@@ -1,11 +1,16 @@
+// service/authService.ts
 import bcrypt from "bcryptjs";
 import { sign, verify } from "hono/jwt";
 import { DrizzleClientType } from "../types/drizzleClientType";
-import { findUserByEmail, findUserById, insertUser } from "../model/userModel";
-import { RegisterDtoType, LoginDtoType, RefreshDtoType } from "../dto/authDto";
 import { SupabaseClientType } from "../types/supabaseClientType";
-
-// ─── token helpers ────────────────────────────────────────────────────────────
+import { findUserByEmail, findUserById, insertUser } from "../model/userModel";
+import {
+  findRefreshToken,
+  insertRefreshToken,
+  deleteRefreshToken,
+  deleteAllUserRefreshTokens,
+} from "../model/refreshTokenModel";
+import { RegisterDtoType, LoginDtoType, RefreshDtoType } from "../dto/authDto";
 
 const generateTokens = async (params: {
   userId: string;
@@ -14,11 +19,12 @@ const generateTokens = async (params: {
   jwtRefreshSecret: string;
 }) => {
   const { userId, securityLevel, jwtSecret, jwtRefreshSecret } = { ...params };
+
   const accessToken = await sign(
     {
       id: userId,
       securityLevel,
-      exp: Math.floor(Date.now() / 1000) + 60 * 15, // 15 minutes
+      exp: Math.floor(Date.now() / 1000) + 60 * 15, // 15 min
     },
     jwtSecret,
   );
@@ -35,7 +41,8 @@ const generateTokens = async (params: {
   return { accessToken, refreshToken };
 };
 
-// ─── register ─────────────────────────────────────────────────────────────────
+const refreshTokenExpiresAt = () =>
+  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
 export const register = async (params: {
   drizzleClient: DrizzleClientType;
@@ -47,9 +54,10 @@ export const register = async (params: {
   const { drizzleClient, supabaseClient, jwtSecret, jwtRefreshSecret, data } = {
     ...params,
   };
+
   const existing = await findUserByEmail({
-    drizzleClient: drizzleClient,
-    supabaseClient: supabaseClient,
+    drizzleClient,
+    supabaseClient,
     email: data.email,
   });
   if (existing) throw new Error("Email already in use");
@@ -57,8 +65,8 @@ export const register = async (params: {
   const passwordHash = await bcrypt.hash(data.password, 10);
 
   const user = await insertUser({
-    drizzleClient: drizzleClient,
-    supabaseClient: supabaseClient,
+    drizzleClient,
+    supabaseClient,
     data: {
       email: data.email,
       username: data.username,
@@ -70,14 +78,22 @@ export const register = async (params: {
   const tokens = await generateTokens({
     userId: user.userId,
     securityLevel: user.securityLevel!,
-    jwtSecret: jwtSecret,
-    jwtRefreshSecret: jwtRefreshSecret,
+    jwtSecret,
+    jwtRefreshSecret,
+  });
+
+  await insertRefreshToken({
+    drizzleClient,
+    supabaseClient,
+    data: {
+      userId: user.userId,
+      token: tokens.refreshToken,
+      expiresAt: refreshTokenExpiresAt(),
+    },
   });
 
   return { user, ...tokens };
 };
-
-// ─── login ────────────────────────────────────────────────────────────────────
 
 export const login = async (params: {
   drizzleClient: DrizzleClientType;
@@ -89,9 +105,10 @@ export const login = async (params: {
   const { drizzleClient, supabaseClient, jwtSecret, jwtRefreshSecret, data } = {
     ...params,
   };
+
   const user = await findUserByEmail({
-    drizzleClient: drizzleClient,
-    supabaseClient: supabaseClient,
+    drizzleClient,
+    supabaseClient,
     email: data.email,
   });
   if (!user) throw new Error("Invalid credentials");
@@ -102,8 +119,18 @@ export const login = async (params: {
   const tokens = await generateTokens({
     userId: user.userId,
     securityLevel: user.securityLevel!,
-    jwtSecret: jwtSecret,
-    jwtRefreshSecret: jwtRefreshSecret,
+    jwtSecret,
+    jwtRefreshSecret,
+  });
+
+  await insertRefreshToken({
+    drizzleClient,
+    supabaseClient,
+    data: {
+      userId: user.userId,
+      token: tokens.refreshToken,
+      expiresAt: refreshTokenExpiresAt(),
+    },
   });
 
   return {
@@ -117,8 +144,6 @@ export const login = async (params: {
   };
 };
 
-// ─── refresh ──────────────────────────────────────────────────────────────────
-
 export const refresh = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -129,32 +154,60 @@ export const refresh = async (params: {
   const { drizzleClient, supabaseClient, jwtSecret, jwtRefreshSecret, data } = {
     ...params,
   };
-  let payload: any;
 
+  // 1. verify JWT signature
+  let payload: any;
   try {
     payload = await verify(data.refreshToken, jwtRefreshSecret, "HS256");
   } catch {
     throw new Error("Invalid or expired refresh token");
   }
 
-  const user = await findUserById({
-    drizzleClient: drizzleClient,
-    supabaseClient: supabaseClient,
-    userId: payload.id,
+  // 2. check token exists in DB
+  const storedToken = await findRefreshToken({
+    drizzleClient,
+    supabaseClient,
+    token: data.refreshToken,
   });
-  if (!user) throw new Error("User not found");
 
+  if (!storedToken) {
+    // reuse detected → nuke all tokens for this user
+    await deleteAllUserRefreshTokens({
+      drizzleClient,
+      supabaseClient,
+      userId: payload.id,
+    });
+    throw new Error("Refresh token reuse detected — please login again");
+  }
+
+  // 3. delete used token (rotation)
+  await deleteRefreshToken({
+    drizzleClient,
+    supabaseClient,
+    token: data.refreshToken,
+  });
+
+  // 4. generate new tokens
   const tokens = await generateTokens({
-    userId: user.userId,
-    securityLevel: user.securityLevel!,
-    jwtSecret: jwtSecret,
-    jwtRefreshSecret: jwtRefreshSecret,
+    userId: payload.id,
+    securityLevel: payload.securityLevel,
+    jwtSecret,
+    jwtRefreshSecret,
+  });
+
+  // 5. save new refresh token to DB
+  await insertRefreshToken({
+    drizzleClient,
+    supabaseClient,
+    data: {
+      userId: payload.id,
+      token: tokens.refreshToken,
+      expiresAt: refreshTokenExpiresAt(),
+    },
   });
 
   return tokens;
 };
-
-// ─── authenticate ─────────────────────────────────────────────────────────────
 
 export const authenticate = async (params: {
   drizzleClient: DrizzleClientType;
@@ -163,12 +216,9 @@ export const authenticate = async (params: {
   jwtRefreshSecret: string;
   token: string;
 }) => {
-  const { drizzleClient, supabaseClient, jwtSecret, jwtRefreshSecret, token } =
-    {
-      ...params,
-    };
-  let payload: any;
+  const { drizzleClient, supabaseClient, jwtSecret, token } = { ...params };
 
+  let payload: any;
   try {
     payload = await verify(token, jwtSecret, "HS256");
   } catch {
@@ -176,8 +226,8 @@ export const authenticate = async (params: {
   }
 
   const user = await findUserById({
-    drizzleClient: drizzleClient,
-    supabaseClient: supabaseClient,
+    drizzleClient,
+    supabaseClient,
     userId: payload.id,
   });
   if (!user) throw new Error("User not found");
@@ -188,4 +238,18 @@ export const authenticate = async (params: {
     username: user.username,
     securityLevel: user.securityLevel,
   };
+};
+
+export const logout = async (params: {
+  drizzleClient: DrizzleClientType;
+  supabaseClient: SupabaseClientType;
+  refreshToken: string;
+}) => {
+  const { drizzleClient, supabaseClient, refreshToken } = { ...params };
+
+  await deleteRefreshToken({
+    drizzleClient,
+    supabaseClient,
+    token: refreshToken,
+  });
 };

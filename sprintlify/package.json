@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
+    "genaret-local-types": "npm run supabase:update-types-local && npm run drizzle:introspect-local",
     "supabase:migrate-local": "npx supabase db push --local",
     "supabase:update-types-local": "npx supabase gen types typescript --local > ./db/database.types.ts",
     "supabase:restart-local": "npx supabase stop && npx supabase start",

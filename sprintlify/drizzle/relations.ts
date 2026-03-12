@@ -1,30 +1,55 @@
 import { relations } from "drizzle-orm/relations";
-import { users, posts, tickets, ticketComments } from "./schema";
+import { users, refreshTokens, projects, tickets, ticketHistory, posts, ticketComments, projectMembers } from "./schema";
 
-export const postsRelations = relations(posts, ({one}) => ({
+export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 	user: one(users, {
-		fields: [posts.userId],
+		fields: [refreshTokens.userId],
 		references: [users.userId]
 	}),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
-	posts: many(posts),
+	refreshTokens: many(refreshTokens),
+	projects: many(projects),
+	ticketHistories: many(ticketHistory),
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
 	}),
 	tickets_reporterId: many(tickets, {
 		relationName: "tickets_reporterId_users_userId"
 	}),
+	posts: many(posts),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
 	}),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
+	}),
+	projectMembers: many(projectMembers),
+}));
+
+export const projectsRelations = relations(projects, ({one, many}) => ({
+	user: one(users, {
+		fields: [projects.ownerId],
+		references: [users.userId]
+	}),
+	tickets: many(tickets),
+	projectMembers: many(projectMembers),
+}));
+
+export const ticketHistoryRelations = relations(ticketHistory, ({one}) => ({
+	ticket: one(tickets, {
+		fields: [ticketHistory.ticketId],
+		references: [tickets.ticketId]
+	}),
+	user: one(users, {
+		fields: [ticketHistory.changedBy],
+		references: [users.userId]
 	}),
 }));
 
 export const ticketsRelations = relations(tickets, ({one, many}) => ({
+	ticketHistories: many(ticketHistory),
 	user_assigneeId: one(users, {
 		fields: [tickets.assigneeId],
 		references: [users.userId],
@@ -35,11 +60,22 @@ export const ticketsRelations = relations(tickets, ({one, many}) => ({
 		references: [users.userId],
 		relationName: "tickets_reporterId_users_userId"
 	}),
+	project: one(projects, {
+		fields: [tickets.projectId],
+		references: [projects.projectId]
+	}),
 	ticketComments_ticketId: many(ticketComments, {
 		relationName: "ticketComments_ticketId_tickets_ticketId"
 	}),
 	ticketComments_ticketId: many(ticketComments, {
 		relationName: "ticketComments_ticketId_tickets_ticketId"
+	}),
+}));
+
+export const postsRelations = relations(posts, ({one}) => ({
+	user: one(users, {
+		fields: [posts.userId],
+		references: [users.userId]
 	}),
 }));
 
@@ -63,5 +99,16 @@ export const ticketCommentsRelations = relations(ticketComments, ({one}) => ({
 		fields: [ticketComments.userId],
 		references: [users.userId],
 		relationName: "ticketComments_userId_users_userId"
+	}),
+}));
+
+export const projectMembersRelations = relations(projectMembers, ({one}) => ({
+	project: one(projects, {
+		fields: [projectMembers.projectId],
+		references: [projects.projectId]
+	}),
+	user: one(users, {
+		fields: [projectMembers.userId],
+		references: [users.userId]
 	}),
 }));

@@ -107,3 +107,23 @@ export const authenticate = async (c: Context<AppContext>) => {
     return c.json({ message: err.message }, 401);
   }
 };
+
+// ─── logout ───────────────────────────────────────────────────────────────────
+
+export const logout = async (c: Context<AppContext>) => {
+  const body = await c.req.json();
+  const parsed = RefreshDto.safeParse(body);
+  if (!parsed.success) return c.json({ errors: parsed.error.flatten() }, 400);
+
+  try {
+    const { drizzleClient, supabaseClient } = getCtxVars(c);
+    await authService.logout({
+      drizzleClient,
+      supabaseClient,
+      refreshToken: parsed.data.refreshToken,
+    });
+    return c.json({ message: "Logged out successfully" }, 200);
+  } catch (err: any) {
+    return c.json({ message: err.message }, 400);
+  }
+};
