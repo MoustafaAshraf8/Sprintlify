@@ -35,6 +35,11 @@ export const TicketFilterDto = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
 });
 
+export const CreateTicketCommentDto = z.object({
+  body: z.string().min(1),
+});
+
 export type CreateTicketDtoType = z.infer<typeof CreateTicketDto>;
 export type UpdateTicketDtoType = z.infer<typeof UpdateTicketDto>;
 export type TicketFilterDtoType = z.infer<typeof TicketFilterDto>;
+export type CreateTicketCommentDtoType = z.infer<typeof CreateTicketCommentDto>;

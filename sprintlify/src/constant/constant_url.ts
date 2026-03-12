@@ -9,4 +9,5 @@ export const apiRoute = {
   projects: "/api/projects",
   projectMembers: "/api/projects/:projectId/members",
   tickets: "/api/projects/:projectId/tickets",
+  ticketComments: "/api/projects/:projectId/tickets/:ticketId/comments",
 };
