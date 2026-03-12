@@ -6,8 +6,6 @@ import * as projectController from "../controller/projectController";
 
 const projectRouter = new Hono<AppContext>();
 
-projectRouter.use("*", userAuthMiddleware);
-
 projectRouter.get("/", projectController.getProjects);
 projectRouter.get("/:projectId", projectController.getProjectById);
 projectRouter.post("/", projectController.createProject);

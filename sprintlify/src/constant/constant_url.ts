@@ -8,4 +8,5 @@ export const apiRoute = {
   authenticate: "/authenticate",
   projects: "/api/projects",
   projectMembers: "/api/projects/:projectId/members",
+  tickets: "/api/projects/:projectId/tickets",
 };

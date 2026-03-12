@@ -6,6 +6,7 @@ import { apiRoute } from "./constant/constant_url";
 import projectRouter from "./route/projectRoute";
 import projectMemberRouter from "./route/projectMemberRoute";
 import { userAuthMiddleware } from "./middleware/userAuthMiddleware";
+import ticketRouter from "./route/ticketRoute";
 
 const app = new Hono<AppContext>();
 
@@ -15,5 +16,6 @@ app.use("*", userAuthMiddleware);
 app.route(apiRoute.auth, authRouter);
 app.route(apiRoute.projects, projectRouter);
 app.route(apiRoute.projectMembers, projectMemberRouter);
+app.route(apiRoute.tickets, ticketRouter);
 
 export default app;
