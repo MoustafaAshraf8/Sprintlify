@@ -1,8 +1,9 @@
-import { createFactory } from "hono/factory";
+import { KVNamespace } from "@cloudflare/workers-types";
 import { DrizzleClientType } from "./drizzleClientType";
 import { SupabaseClientType } from "./supabaseClientType";
 
 type Bindings = {
+  KVCASH: KVNamespace;
   SUPABASE_URL: string;
   SUPABASE_DB_URL: string;
   SUPABASE_ANON_KEY: string;

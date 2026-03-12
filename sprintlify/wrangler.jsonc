@@ -7,9 +7,22 @@
   "env": {
     "dev": {
       "name": "sprintlify-dev",
+      "kv_namespaces": [
+        {
+          "binding": "KVCASH",
+          "id": "6d54121db2cc4a248e81b069aaf2f609",
+          "preview_id": "6d54121db2cc4a248e81b069aaf2f609",
+        },
+      ],
     },
     "production": {
       "name": "sprintlify-production",
+      "kv_namespaces": [
+        {
+          "binding": "KVCASH",
+          "id": "6d54121db2cc4a248e81b069aaf2f609",
+        },
+      ],
     },
   },
 }
