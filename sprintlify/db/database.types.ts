@@ -243,6 +243,51 @@ export type Database = {
           },
         ]
       }
+      ticket_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          field: string
+          new_value: string | null
+          old_value: string | null
+          ticket_history_id: string
+          ticket_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          field: string
+          new_value?: string | null
+          old_value?: string | null
+          ticket_history_id?: string
+          ticket_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          field?: string
+          new_value?: string | null
+          old_value?: string | null
+          ticket_history_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_history_changed_by_fk"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ticket_history_ticket_history_id_fk"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["ticket_id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           assignee_id: string | null

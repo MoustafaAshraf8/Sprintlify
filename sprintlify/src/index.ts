@@ -9,6 +9,7 @@ import { userAuthMiddleware } from "./middleware/userAuthMiddleware";
 import ticketRouter from "./route/ticketRoute";
 import ticketCommentRouter from "./route/ticketCommentRoute";
 import userRouter from "./route/userRoute";
+import ticketHistoryRouter from "./route/ticketHistoryRoute";
 
 const app = new Hono<AppContext>();
 
@@ -20,6 +21,7 @@ app.route(apiRoute.projects, projectRouter);
 app.route(apiRoute.projectMembers, projectMemberRouter);
 app.route(apiRoute.tickets, ticketRouter);
 app.route(apiRoute.ticketComments, ticketCommentRouter);
+app.route(apiRoute.ticketHistory, ticketHistoryRouter);
 app.route(apiRoute.users, userRouter);
 
 export default app;

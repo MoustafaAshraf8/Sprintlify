@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, refreshTokens, projects, tickets, posts, ticketComments, projectMembers } from "./schema";
+import { users, refreshTokens, projects, tickets, ticketHistory, posts, ticketComments, projectMembers } from "./schema";
 
 export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 	user: one(users, {
@@ -11,6 +11,7 @@ export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 export const usersRelations = relations(users, ({many}) => ({
 	refreshTokens: many(refreshTokens),
 	projects: many(projects),
+	ticketHistories: many(ticketHistory),
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
 	}),
@@ -36,7 +37,19 @@ export const projectsRelations = relations(projects, ({one, many}) => ({
 	projectMembers: many(projectMembers),
 }));
 
+export const ticketHistoryRelations = relations(ticketHistory, ({one}) => ({
+	ticket: one(tickets, {
+		fields: [ticketHistory.ticketId],
+		references: [tickets.ticketId]
+	}),
+	user: one(users, {
+		fields: [ticketHistory.changedBy],
+		references: [users.userId]
+	}),
+}));
+
 export const ticketsRelations = relations(tickets, ({one, many}) => ({
+	ticketHistories: many(ticketHistory),
 	user_assigneeId: one(users, {
 		fields: [tickets.assigneeId],
 		references: [users.userId],

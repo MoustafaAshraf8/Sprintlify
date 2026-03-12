@@ -36,6 +36,29 @@ export const projects = pgTable("projects", {
 		}).onUpdate("cascade").onDelete("cascade"),
 ]);
 
+export const ticketHistory = pgTable("ticket_history", {
+	ticketHistoryId: uuid("ticket_history_id").defaultRandom().primaryKey().notNull(),
+	ticketId: uuid("ticket_id").notNull(),
+	changedBy: uuid("changed_by").notNull(),
+	field: text().notNull(),
+	oldValue: text("old_value"),
+	newValue: text("new_value"),
+	changedAt: timestamp("changed_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("idx_ticket_history_changed_by").using("btree", table.changedBy.asc().nullsLast().op("uuid_ops")),
+	index("idx_ticket_history_ticket_id").using("btree", table.ticketId.asc().nullsLast().op("uuid_ops")),
+	foreignKey({
+			columns: [table.ticketId],
+			foreignColumns: [tickets.ticketId],
+			name: "ticket_history_ticket_history_id_fk"
+		}).onUpdate("cascade").onDelete("cascade"),
+	foreignKey({
+			columns: [table.changedBy],
+			foreignColumns: [users.userId],
+			name: "ticket_history_changed_by_fk"
+		}).onUpdate("cascade").onDelete("cascade"),
+]);
+
 export const tickets = pgTable("tickets", {
 	ticketId: uuid("ticket_id").defaultRandom().primaryKey().notNull(),
 	title: text().notNull(),
