@@ -14,6 +14,10 @@ import {
 } from "../model/ticketModel";
 import { findProjectById } from "../model/projectModel";
 import { findProjectMember } from "../model/projectMemberModel";
+import { cacheKeys } from "../cache/cacheKeys";
+import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
+import { KVNamespace } from "@cloudflare/workers-types";
+import { insertTicketHistoryEntries } from "../model/ticketHistoryModel";
 
 // ─── verify helpers ───────────────────────────────────────────────────────────
 
@@ -43,13 +47,15 @@ const verifyMembership = async (params: {
 export const getTickets = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   requesterId: string;
   filters: TicketFilterDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, requesterId, filters } = {
-    ...params,
-  };
+  const { drizzleClient, supabaseClient, kv, projectId, requesterId, filters } =
+    {
+      ...params,
+    };
 
   await verifyProjectExists({ drizzleClient, supabaseClient, projectId });
   await verifyMembership({
@@ -59,12 +65,18 @@ export const getTickets = async (params: {
     userId: requesterId,
   });
 
-  return await findTicketsByProjectId({
+  const cacheKey = cacheKeys.project_tickets(projectId);
+  const cached = await cacheGet({ kv, key: cacheKey });
+  if (cached) return cached;
+
+  const data = await findTicketsByProjectId({
     drizzleClient,
     supabaseClient,
     projectId,
     filters,
   });
+
+  await cacheSet({ kv, key: cacheKey, data });
 };
 
 // ─── get by id ────────────────────────────────────────────────────────────────
@@ -72,11 +84,19 @@ export const getTickets = async (params: {
 export const getTicketById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   ticketId: string;
   requesterId: string;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, ticketId, requesterId } = {
+  const {
+    drizzleClient,
+    supabaseClient,
+    kv,
+    projectId,
+    ticketId,
+    requesterId,
+  } = {
     ...params,
   };
 
@@ -87,6 +107,10 @@ export const getTicketById = async (params: {
     projectId,
     userId: requesterId,
   });
+
+  const cacheKey = cacheKeys.ticket(ticketId);
+  const cached = await cacheGet({ kv, key: cacheKey });
+  if (cached) return cached;
 
   const ticket = await findTicketById({
     drizzleClient,
@@ -96,6 +120,8 @@ export const getTicketById = async (params: {
   });
   if (!ticket) throw new Error("Ticket not found");
 
+  await cacheSet({ kv, key: cacheKey, data: ticket });
+
   return ticket;
 };
 
@@ -104,11 +130,12 @@ export const getTicketById = async (params: {
 export const createTicket = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   requesterId: string;
   data: CreateTicketDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, requesterId, data } = {
+  const { drizzleClient, supabaseClient, kv, projectId, requesterId, data } = {
     ...params,
   };
 
@@ -131,15 +158,17 @@ export const createTicket = async (params: {
     if (!assigneeMember) throw new Error("Assignee is not a project member");
   }
 
-  return await insertTicket({
+  const ticket = await insertTicket({
     drizzleClient,
     supabaseClient,
-    data: {
-      ...data,
-      reporterId: requesterId,
-      projectId,
-    },
+    data: { ...data, reporterId: requesterId, projectId },
   });
+
+  // invalidation: purge + tag-based
+  await cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
+  await cacheSet({ kv, key: cacheKeys.ticket(ticket.ticketId), data: ticket });
+
+  return ticket;
 };
 
 // ─── update ───────────────────────────────────────────────────────────────────
@@ -147,6 +176,7 @@ export const createTicket = async (params: {
 export const updateTicketById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   ticketId: string;
   requesterId: string;
@@ -155,6 +185,7 @@ export const updateTicketById = async (params: {
   const {
     drizzleClient,
     supabaseClient,
+    kv,
     projectId,
     ticketId,
     requesterId,
@@ -202,12 +233,39 @@ export const updateTicketById = async (params: {
     if (!assigneeMember) throw new Error("Assignee is not a project member");
   }
 
-  return await updateTicket({
+  const TRACKED_FIELDS = [
+    "status",
+    "priority",
+    "label",
+    "assigneeId",
+    "title",
+    "description",
+  ];
+  const entries = TRACKED_FIELDS.filter(
+    (field: string) =>
+      Object(data)[field] !== undefined &&
+      Object(data)[field] !== Object(ticket)[field],
+  ).map((field) => ({
+    ticketId,
+    changedBy: requesterId,
+    field,
+    oldValue:
+      Object(ticket)[field] != null ? String(Object(ticket)[field]) : null,
+    newValue: Object(data)[field] != null ? String(Object(data)[field]) : null,
+  }));
+
+  const updatedTicket = await updateTicket({
     drizzleClient,
     supabaseClient,
     ticketId,
     data,
   });
+
+  await insertTicketHistoryEntries({ drizzleClient, supabaseClient, entries });
+  cacheDel({ kv, key: cacheKeys.ticket_state(ticketId) });
+  cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
+  cacheSet({ kv, key: cacheKeys.ticket(ticketId), data: updatedTicket });
+  cacheSet({ kv, key: cacheKeys.ticket_history(ticketId), data: entries });
 };
 
 // ─── delete ───────────────────────────────────────────────────────────────────
@@ -215,11 +273,19 @@ export const updateTicketById = async (params: {
 export const deleteTicketById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   ticketId: string;
   requesterId: string;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, ticketId, requesterId } = {
+  const {
+    drizzleClient,
+    supabaseClient,
+    kv,
+    projectId,
+    ticketId,
+    requesterId,
+  } = {
     ...params,
   };
 
@@ -250,4 +316,24 @@ export const deleteTicketById = async (params: {
     supabaseClient,
     ticketId,
   });
+
+  await cacheDel({ kv, key: cacheKeys.ticket(ticketId) });
+  await cacheDel({ kv, key: cacheKeys.ticket_history(ticketId) });
+  await cacheDel({ kv, key: cacheKeys.ticket_state(ticketId) });
+  await cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
+  await cacheDel({ kv, key: cacheKeys.ticket_comments(ticketId) });
+
+  const updatedTickets = await findTicketsByProjectId({
+    drizzleClient,
+    supabaseClient,
+    projectId,
+    filters: { sortBy: "createdAt", sortOrder: "desc", page: 1, limit: 10 },
+  });
+
+  await cacheSet({
+    kv,
+    key: cacheKeys.project_tickets(projectId),
+    data: updatedTickets,
+  });
+  return;
 };
