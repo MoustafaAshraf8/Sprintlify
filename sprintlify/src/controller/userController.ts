@@ -9,6 +9,10 @@ const getCtxVars = (c: Context<AppContext>) => ({
   userId: c.get("user").id,
 });
 
+const getCtxBind = (c: Context<AppContext>) => ({
+  kv: c.env.KVCASH,
+});
+
 const getStatus = (message: string) =>
   message === "User not found"
     ? 404
@@ -21,9 +25,11 @@ const getStatus = (message: string) =>
 export const getUsers = async (c: Context<AppContext>) => {
   try {
     const { drizzleClient, supabaseClient } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await userService.getAllUsers({
       drizzleClient,
       supabaseClient,
+      kv,
     });
     return c.json(result, 200);
   } catch (err: any) {
@@ -36,9 +42,11 @@ export const getUsers = async (c: Context<AppContext>) => {
 export const getCurrentUser = async (c: Context<AppContext>) => {
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await userService.getCurrentUser({
       drizzleClient,
       supabaseClient,
+      kv,
       userId,
     });
     return c.json(result, 200);
@@ -56,9 +64,11 @@ export const updateCurrentUser = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await userService.updateCurrentUser({
       drizzleClient,
       supabaseClient,
+      kv,
       userId,
       data: parsed.data,
     });
