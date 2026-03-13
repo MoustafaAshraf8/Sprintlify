@@ -25,6 +25,14 @@ Built with **Hono** on **Cloudflare Workers**, backed by **Supabase** (PostgreSQ
 | Validation | Zod                   |
 | Auth       | JWT + bcryptjs        |
 
+## Where to find the server
+
+| Environment | URL                                                        |
+| ----------- | ---------------------------------------------------------- |
+| Local       | http://127.0.0.1:8787/                                     |
+| Development | https://sprintlify-dev.moustafaashraf1.workers.dev/        |
+| Production  | https://sprintlify-production.moustafaashraf1.workers.dev/ |
+
 ### 1. Clone the repository
 
 ```
