@@ -8,11 +8,12 @@ Built with **Hono** on **Cloudflare Workers**, backed by **Supabase** (PostgreSQ
 
 - JWT authentication with stateful refresh tokens and reuse detection
 - Project management with role-based membership
+- Admin and member access levels
+- Cache layer using Cloudflare KV service
 - Ticket tracking with priority, status, labels, and assignees
 - Ticket filtering, search, and pagination
 - Ticket history — full audit log of every field change
 - Comments on tickets
-- Admin and member access levels
 
 ## Tech Stack
 
@@ -22,16 +23,9 @@ Built with **Hono** on **Cloudflare Workers**, backed by **Supabase** (PostgreSQ
 | Framework  | Hono                  |
 | Database   | Supabase (PostgreSQL) |
 | ORM        | Drizzle ORM           |
+| Cache      | Cloudflare KV         |
 | Validation | Zod                   |
 | Auth       | JWT + bcryptjs        |
-
-## Where to find the server
-
-| Environment | URL                                                        |
-| ----------- | ---------------------------------------------------------- |
-| Local       | http://127.0.0.1:8787/                                     |
-| Development | https://sprintlify-dev.moustafaashraf1.workers.dev/        |
-| Production  | https://sprintlify-production.moustafaashraf1.workers.dev/ |
 
 ### 1. Clone the repository
 
