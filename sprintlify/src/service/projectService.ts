@@ -12,21 +12,33 @@ import {
   insertProjectMember,
   findProjectMember,
 } from "../model/projectMemberModel";
+import { cacheKeys } from "../cache/cacheKeys";
+import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
+import { KVNamespace } from "@cloudflare/workers-types";
 
 // ─── get all ──────────────────────────────────────────────────────────────────
 
 export const getProjects = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   userId: string;
 }) => {
-  const { drizzleClient, supabaseClient, userId } = { ...params };
+  const { drizzleClient, supabaseClient, kv, userId } = { ...params };
 
-  return await findProjectsByUserId({
+  const cacheKey = cacheKeys.user_projects(userId);
+  const cached = await cacheGet({ kv, key: cacheKey });
+  if (cached) return cached;
+
+  const data = await findProjectsByUserId({
     drizzleClient,
     supabaseClient,
     userId,
   });
+
+  await cacheSet({ kv, key: cacheKey, data });
+
+  return data;
 };
 
 // ─── get by id ────────────────────────────────────────────────────────────────
@@ -34,10 +46,17 @@ export const getProjects = async (params: {
 export const getProjectById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   userId: string;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, userId } = { ...params };
+  const { drizzleClient, supabaseClient, kv, projectId, userId } = {
+    ...params,
+  };
+
+  const cacheKey = cacheKeys.project(projectId);
+  const cached = await cacheGet({ kv, key: cacheKey });
+  if (cached) return cached;
 
   const project = await findProjectById({
     drizzleClient,
@@ -55,6 +74,8 @@ export const getProjectById = async (params: {
   });
   if (!isMember) throw new Error("Forbidden");
 
+  await cacheSet({ kv, key: cacheKey, data: project });
+
   return project;
 };
 
@@ -63,12 +84,12 @@ export const getProjectById = async (params: {
 export const createProject = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   userId: string;
   data: CreateProjectDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, userId, data } = { ...params };
+  const { drizzleClient, supabaseClient, kv, userId, data } = { ...params };
 
-  // create the project
   const project = await insertProject({
     drizzleClient,
     supabaseClient,
@@ -79,7 +100,6 @@ export const createProject = async (params: {
     },
   });
 
-  // auto-add creator as owner in project_members
   await insertProjectMember({
     drizzleClient,
     supabaseClient,
@@ -90,6 +110,15 @@ export const createProject = async (params: {
     },
   });
 
+  const updatedProjects = await findProjectsByUserId({
+    drizzleClient,
+    supabaseClient,
+    userId: userId,
+  });
+
+  cacheSet({ kv, key: cacheKeys.project(project.projectId), data: project });
+  cacheSet({ kv, key: cacheKeys.user_projects(userId), data: updatedProjects });
+
   return project;
 };
 
@@ -98,15 +127,15 @@ export const createProject = async (params: {
 export const updateProjectById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   userId: string;
   data: UpdateProjectDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, userId, data } = {
+  const { drizzleClient, supabaseClient, kv, projectId, userId, data } = {
     ...params,
   };
 
-  // verify project exists
   const project = await findProjectById({
     drizzleClient,
     supabaseClient,
@@ -114,15 +143,33 @@ export const updateProjectById = async (params: {
   });
   if (!project) throw new Error("Project not found");
 
-  // verify user is owner
   if (project.ownerId !== userId) throw new Error("Forbidden");
 
-  return await updateProject({
+  const updatedProject = await updateProject({
     drizzleClient,
     supabaseClient,
     projectId,
     data,
   });
+
+  const updatedProjects = await findProjectsByUserId({
+    drizzleClient,
+    supabaseClient,
+    userId: userId,
+  });
+
+  await cacheSet({
+    kv,
+    key: cacheKeys.project(projectId),
+    data: updatedProject,
+  });
+  await cacheSet({
+    kv,
+    key: cacheKeys.user_projects(userId),
+    data: updatedProjects,
+  });
+
+  return updatedProject;
 };
 
 // ─── delete ───────────────────────────────────────────────────────────────────
@@ -130,12 +177,14 @@ export const updateProjectById = async (params: {
 export const deleteProjectById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   userId: string;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, userId } = { ...params };
+  const { drizzleClient, supabaseClient, kv, projectId, userId } = {
+    ...params,
+  };
 
-  // verify project exists
   const project = await findProjectById({
     drizzleClient,
     supabaseClient,
@@ -143,7 +192,6 @@ export const deleteProjectById = async (params: {
   });
   if (!project) throw new Error("Project not found");
 
-  // verify user is owner
   if (project.ownerId !== userId) throw new Error("Forbidden");
 
   await deleteProject({
@@ -151,4 +199,21 @@ export const deleteProjectById = async (params: {
     supabaseClient,
     projectId,
   });
+
+  const updatedProjects = await findProjectsByUserId({
+    drizzleClient,
+    supabaseClient,
+    userId: userId,
+  });
+
+  await cacheDel({ kv, key: cacheKeys.project(projectId) });
+  await cacheDel({ kv, key: cacheKeys.project_members(projectId) });
+  await cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
+  await cacheSet({
+    kv,
+    key: cacheKeys.user_projects(userId),
+    data: updatedProjects,
+  });
+
+  return;
 };

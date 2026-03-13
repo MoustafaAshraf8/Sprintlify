@@ -5,7 +5,11 @@ import * as ticketHistoryService from "../service/ticketHistoryService";
 const getCtxVars = (c: Context<AppContext>) => ({
   drizzleClient: c.get("drizzleClient"),
   supabaseClient: c.get("supabaseClient"),
-  requesterId: c.get("user").id,
+  userId: c.get("user").id,
+});
+
+const getCtxBind = (c: Context<AppContext>) => ({
+  kv: c.env.KVCASH,
 });
 
 const getStatus = (message: string) =>
@@ -18,13 +22,15 @@ export const getTicketHistory = async (c: Context<AppContext>) => {
   const ticketId = c.req.param("ticketId");
 
   try {
-    const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await ticketHistoryService.getTicketHistory({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       ticketId,
-      requesterId,
+      userId,
     });
     return c.json(result, 200);
   } catch (err: any) {
@@ -39,13 +45,15 @@ export const getTicketState = async (c: Context<AppContext>) => {
   const ticketId = c.req.param("ticketId");
 
   try {
-    const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await ticketHistoryService.getTicketState({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       ticketId,
-      requesterId,
+      userId,
     });
     return c.json(result, 200);
   } catch (err: any) {

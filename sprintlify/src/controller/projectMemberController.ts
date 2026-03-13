@@ -7,7 +7,11 @@ import * as projectMemberService from "../service/projectMemberService";
 const getCtxVars = (c: Context<AppContext>) => ({
   drizzleClient: c.get("drizzleClient"),
   supabaseClient: c.get("supabaseClient"),
-  requesterId: c.get("user").id,
+  userId: c.get("user").id,
+});
+
+const getCtxBind = (c: Context<AppContext>) => ({
+  kv: c.env.KVCASH,
 });
 
 // ─── get members ──────────────────────────────────────────────────────────────
@@ -16,12 +20,14 @@ export const getProjectMembers = async (c: Context<AppContext>) => {
   const projectId = c.req.param("projectId");
 
   try {
-    const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const members = await projectMemberService.getProjectMembers({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
-      requesterId,
+      userId,
     });
     return c.json(members, 200);
   } catch (err: any) {
@@ -44,12 +50,14 @@ export const addProjectMember = async (c: Context<AppContext>) => {
   if (!parsed.success) return c.json({ errors: parsed.error.flatten() }, 400);
 
   try {
-    const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const member = await projectMemberService.addProjectMember({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
-      requesterId,
+      userId,
       data: parsed.data,
     });
     return c.json(member, 201);
@@ -70,15 +78,17 @@ export const addProjectMember = async (c: Context<AppContext>) => {
 
 export const removeProjectMember = async (c: Context<AppContext>) => {
   const projectId = c.req.param("projectId");
-  const userId = c.req.param("userId");
+  const unwantedId = c.req.param("unwantedId");
 
   try {
-    const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     await projectMemberService.removeProjectMember({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
-      requesterId,
+      unwantedId,
       userId,
     });
     return c.json({ message: "Member removed successfully" }, 200);

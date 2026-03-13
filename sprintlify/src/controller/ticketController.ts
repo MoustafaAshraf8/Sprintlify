@@ -13,6 +13,10 @@ const getCtxVars = (c: Context<AppContext>) => ({
   requesterId: c.get("user").id,
 });
 
+const getCtxBind = (c: Context<AppContext>) => ({
+  kv: c.env.KVCASH,
+});
+
 const getStatus = (message: string) =>
   message === "Forbidden"
     ? 403
@@ -34,9 +38,11 @@ export const getTickets = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await ticketService.getTickets({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       requesterId,
       filters: parsed.data,
@@ -55,9 +61,11 @@ export const getTicketById = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await ticketService.getTicketById({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       ticketId,
       requesterId,
@@ -78,9 +86,11 @@ export const createTicket = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await ticketService.createTicket({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       requesterId,
       data: parsed.data,
@@ -102,9 +112,11 @@ export const updateTicket = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const result = await ticketService.updateTicketById({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       ticketId,
       requesterId,
@@ -124,9 +136,11 @@ export const deleteTicket = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, requesterId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     await ticketService.deleteTicketById({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       ticketId,
       requesterId,
