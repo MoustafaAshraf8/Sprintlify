@@ -10,14 +10,20 @@ const getCtxVars = (c: Context<AppContext>) => ({
   userId: c.get("user").id,
 });
 
+const getCtxBind = (c: Context<AppContext>) => ({
+  kv: c.env.KVCASH,
+});
+
 // ─── get all ──────────────────────────────────────────────────────────────────
 
 export const getProjects = async (c: Context<AppContext>) => {
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const projects = await projectService.getProjects({
       drizzleClient,
       supabaseClient,
+      kv,
       userId,
     });
     return c.json(projects, 200);
@@ -33,9 +39,11 @@ export const getProjectById = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const project = await projectService.getProjectById({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       userId,
     });
@@ -60,9 +68,11 @@ export const createProject = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const project = await projectService.createProject({
       drizzleClient,
       supabaseClient,
+      kv,
       userId,
       data: parsed.data,
     });
@@ -82,9 +92,11 @@ export const updateProject = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     const project = await projectService.updateProjectById({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       userId,
       data: parsed.data,
@@ -108,9 +120,11 @@ export const deleteProject = async (c: Context<AppContext>) => {
 
   try {
     const { drizzleClient, supabaseClient, userId } = getCtxVars(c);
+    const { kv } = getCtxBind(c);
     await projectService.deleteProjectById({
       drizzleClient,
       supabaseClient,
+      kv,
       projectId,
       userId,
     });
