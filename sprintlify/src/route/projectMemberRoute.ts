@@ -8,7 +8,7 @@ const projectMemberRouter = new Hono<AppContext>();
 projectMemberRouter.get("/", projectMemberController.getProjectMembers);
 projectMemberRouter.post("/", projectMemberController.addProjectMember);
 projectMemberRouter.delete(
-  "/:userId",
+  "/:unwantedId",
   projectMemberController.removeProjectMember,
 );
 

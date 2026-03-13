@@ -10,6 +10,9 @@ import {
 import { findTicketById } from "../model/ticketModel";
 import { findProjectById } from "../model/projectModel";
 import { findProjectMember } from "../model/projectMemberModel";
+import { cacheKeys } from "../cache/cacheKeys";
+import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
+import { KVNamespace } from "@cloudflare/workers-types";
 
 // ─── verify helpers ───────────────────────────────────────────────────────────
 
@@ -40,11 +43,12 @@ const verifyTicketExists = async (params: {
 export const getTicketComments = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   ticketId: string;
-  requesterId: string;
+  userId: string;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, ticketId, requesterId } = {
+  const { drizzleClient, supabaseClient, kv, projectId, ticketId, userId } = {
     ...params,
   };
 
@@ -52,7 +56,7 @@ export const getTicketComments = async (params: {
     drizzleClient,
     supabaseClient,
     projectId,
-    userId: requesterId,
+    userId: userId,
   });
 
   await verifyTicketExists({
@@ -62,11 +66,19 @@ export const getTicketComments = async (params: {
     projectId,
   });
 
-  return await findTicketCommentsByTicketId({
+  const cacheKey = cacheKeys.ticket_comments(ticketId);
+  const cached = await cacheGet({ kv, key: cacheKey });
+  if (cached) return cached;
+
+  const ticketComments = await findTicketCommentsByTicketId({
     drizzleClient,
     supabaseClient,
     ticketId,
   });
+
+  await cacheSet({ kv, key: cacheKey, data: ticketComments });
+
+  return ticketComments;
 };
 
 // ─── create ───────────────────────────────────────────────────────────────────
@@ -74,17 +86,19 @@ export const getTicketComments = async (params: {
 export const createTicketComment = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   ticketId: string;
-  requesterId: string;
+  userId: string;
   data: CreateTicketCommentDtoType;
 }) => {
   const {
     drizzleClient,
     supabaseClient,
+    kv,
     projectId,
     ticketId,
-    requesterId,
+    userId,
     data,
   } = { ...params };
 
@@ -92,7 +106,7 @@ export const createTicketComment = async (params: {
     drizzleClient,
     supabaseClient,
     projectId,
-    userId: requesterId,
+    userId: userId,
   });
 
   await verifyTicketExists({
@@ -102,15 +116,29 @@ export const createTicketComment = async (params: {
     projectId,
   });
 
-  return await insertTicketComment({
+  const ticketComment = await insertTicketComment({
     drizzleClient,
     supabaseClient,
     data: {
       body: data.body,
       ticketId,
-      userId: requesterId,
+      userId: userId,
     },
   });
+
+  const updatedComments = await findTicketCommentsByTicketId({
+    drizzleClient,
+    supabaseClient,
+    ticketId,
+  });
+
+  await cacheSet({
+    kv,
+    key: cacheKeys.ticket_comments(ticketId),
+    data: updatedComments,
+  });
+
+  return ticketComment;
 };
 
 // ─── delete ───────────────────────────────────────────────────────────────────
@@ -118,18 +146,20 @@ export const createTicketComment = async (params: {
 export const deleteTicketCommentById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
+  kv: KVNamespace;
   projectId: string;
   ticketId: string;
   commentId: string;
-  requesterId: string;
+  userId: string;
 }) => {
   const {
     drizzleClient,
     supabaseClient,
+    kv,
     projectId,
     ticketId,
     commentId,
-    requesterId,
+    userId,
   } = { ...params };
 
   await verifyTicketExists({
@@ -153,8 +183,7 @@ export const deleteTicketCommentById = async (params: {
     projectId,
   });
 
-  const canDelete =
-    comment.userId === requesterId || project!.ownerId === requesterId;
+  const canDelete = comment.userId === userId || project!.ownerId === userId;
 
   if (!canDelete) throw new Error("Forbidden");
 
@@ -163,4 +192,18 @@ export const deleteTicketCommentById = async (params: {
     supabaseClient,
     commentId,
   });
+
+  const updatedComments = await findTicketCommentsByTicketId({
+    drizzleClient,
+    supabaseClient,
+    ticketId,
+  });
+
+  await cacheSet({
+    kv,
+    key: cacheKeys.ticket_comments(ticketId),
+    data: updatedComments,
+  });
+
+  return;
 };

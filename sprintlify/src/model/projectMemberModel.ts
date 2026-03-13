@@ -77,10 +77,10 @@ export const deleteProjectMember = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
   projectId: string;
-  requesterId: string;
+  unwantedId: string;
   userId: string;
 }) => {
-  const { drizzleClient, supabaseClient, projectId, requesterId, userId } = {
+  const { drizzleClient, supabaseClient, projectId, unwantedId, userId } = {
     ...params,
   };
 
@@ -92,8 +92,8 @@ export const deleteProjectMember = async (params: {
   });
   if (!project) throw new Error("Project not found");
 
-  // verify requester is the owner
-  if (project.ownerId !== requesterId) throw new Error("Forbidden");
+  // verify current_user is the owner
+  if (project.ownerId !== userId) throw new Error("Forbidden");
 
   // prevent owner from being removed
   if (userId === project.ownerId) {
@@ -101,7 +101,7 @@ export const deleteProjectMember = async (params: {
   }
 
   // prevent user from removing themselves  ← new check
-  if (userId === requesterId) {
+  if (userId === unwantedId) {
     throw new Error("You cannot remove yourself from the project");
   }
 
@@ -110,7 +110,7 @@ export const deleteProjectMember = async (params: {
     drizzleClient,
     supabaseClient,
     projectId,
-    userId,
+    userId: unwantedId,
   });
   if (!isMember) throw new Error("User is not a member of this project");
 
@@ -119,7 +119,7 @@ export const deleteProjectMember = async (params: {
     .where(
       and(
         eq(projectMembers.projectId, projectId),
-        eq(projectMembers.userId, userId),
+        eq(projectMembers.userId, unwantedId),
       ),
     );
 };
