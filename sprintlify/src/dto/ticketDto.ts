@@ -8,6 +8,7 @@ export const CreateTicketDto = z.object({
     .enum(["bug", "feature", "infra", "docs", "security", "perf"])
     .optional(),
   assigneeId: z.string().uuid().optional(),
+  sprintId: z.string().uuid().nullable().optional(),
 });
 
 export const UpdateTicketDto = z.object({
@@ -19,6 +20,7 @@ export const UpdateTicketDto = z.object({
     .enum(["bug", "feature", "infra", "docs", "security", "perf"])
     .optional(),
   assigneeId: z.string().uuid().optional(),
+  sprintId: z.string().uuid().nullable().optional(),
 });
 
 export const TicketFilterDto = z.object({

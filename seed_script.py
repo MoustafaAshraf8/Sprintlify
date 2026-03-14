@@ -16,49 +16,49 @@ def hash_password(password: str) -> str:
 
 USERS = [
     {
-        "user_id":       "00000000-0000-0000-0000-000000000001",
-        "email":         "admin@sprintlify.com",
-        "username":      "admin",
-        "nickname":      "The Boss",
-        "bio":           "Platform administrator",
+        "user_id":        "00000000-0000-0000-0000-000000000001",
+        "email":          "admin@sprintlify.com",
+        "username":       "admin",
+        "nickname":       "The Boss",
+        "bio":            "Platform administrator",
         "security_level": "admin",
-        "password":      "Admin123!",
+        "password":       "Admin123!",
     },
     {
-        "user_id":       "00000000-0000-0000-0000-000000000002",
-        "email":         "alex@sprintlify.com",
-        "username":      "alex_dev",
-        "nickname":      "Alex",
-        "bio":           "Frontend developer who loves React",
+        "user_id":        "00000000-0000-0000-0000-000000000002",
+        "email":          "alex@sprintlify.com",
+        "username":       "alex_dev",
+        "nickname":       "Alex",
+        "bio":            "Frontend developer who loves React",
         "security_level": "member",
-        "password":      "Member123!",
+        "password":       "Member123!",
     },
     {
-        "user_id":       "00000000-0000-0000-0000-000000000003",
-        "email":         "jordan@sprintlify.com",
-        "username":      "jordan_dev",
-        "nickname":      "Jordan",
-        "bio":           "Backend developer, Postgres enthusiast",
+        "user_id":        "00000000-0000-0000-0000-000000000003",
+        "email":          "jordan@sprintlify.com",
+        "username":       "jordan_dev",
+        "nickname":       "Jordan",
+        "bio":            "Backend developer, Postgres enthusiast",
         "security_level": "member",
-        "password":      "Member123!",
+        "password":       "Member123!",
     },
     {
-        "user_id":       "00000000-0000-0000-0000-000000000004",
-        "email":         "sam@sprintlify.com",
-        "username":      "sam_dev",
-        "nickname":      "Sam",
-        "bio":           "Full stack developer and DevOps",
+        "user_id":        "00000000-0000-0000-0000-000000000004",
+        "email":          "sam@sprintlify.com",
+        "username":       "sam_dev",
+        "nickname":       "Sam",
+        "bio":            "Full stack developer and DevOps",
         "security_level": "member",
-        "password":      "Member123!",
+        "password":       "Member123!",
     },
     {
-        "user_id":       "00000000-0000-0000-0000-000000000005",
-        "email":         "riley@sprintlify.com",
-        "username":      "riley_dev",
-        "nickname":      "Riley",
-        "bio":           "Mobile developer, Flutter expert",
+        "user_id":        "00000000-0000-0000-0000-000000000005",
+        "email":          "riley@sprintlify.com",
+        "username":       "riley_dev",
+        "nickname":       "Riley",
+        "bio":            "Mobile developer, Flutter expert",
         "security_level": "member",
-        "password":      "Member123!",
+        "password":       "Member123!",
     },
 ]
 
@@ -99,6 +99,72 @@ PROJECT_MEMBERS = [
     ("00000000-0000-0000-0001-000000000003", "00000000-0000-0000-0000-000000000004", "member"),
 ]
 
+SPRINTS = [
+    # ── Sprintlify ────────────────────────────────────────────────────────────
+    {
+        "sprint_id":   "00000000-0000-0000-0005-000000000001",
+        "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_name": "Sprint 1",
+        "goal":        "Fix all critical bugs and set up CI pipeline",
+        "status":      "completed",
+        "start_date":  "2026-01-01",
+        "end_date":    "2026-01-14",
+        "created_by":  "00000000-0000-0000-0000-000000000001",
+    },
+    {
+        "sprint_id":   "00000000-0000-0000-0005-000000000002",
+        "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_name": "Sprint 2",
+        "goal":        "Performance improvements and security fixes",
+        "status":      "active",
+        "start_date":  "2026-03-01",
+        "end_date":    "2026-03-14",
+        "created_by":  "00000000-0000-0000-0000-000000000001",
+    },
+    {
+        "sprint_id":   "00000000-0000-0000-0005-000000000003",
+        "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_name": "Sprint 3",
+        "goal":        "Dark mode and documentation",
+        "status":      "planned",
+        "start_date":  "2026-03-15",
+        "end_date":    "2026-03-28",
+        "created_by":  "00000000-0000-0000-0000-000000000001",
+    },
+    # ── Mobile App ────────────────────────────────────────────────────────────
+    {
+        "sprint_id":   "00000000-0000-0000-0005-000000000004",
+        "project_id":  "00000000-0000-0000-0001-000000000002",
+        "sprint_name": "Sprint 1",
+        "goal":        "Fix Android bugs and add biometric auth",
+        "status":      "active",
+        "start_date":  "2026-03-01",
+        "end_date":    "2026-03-14",
+        "created_by":  "00000000-0000-0000-0000-000000000002",
+    },
+    {
+        "sprint_id":   "00000000-0000-0000-0005-000000000005",
+        "project_id":  "00000000-0000-0000-0001-000000000002",
+        "sprint_name": "Sprint 2",
+        "goal":        "Offline mode support",
+        "status":      "planned",
+        "start_date":  "2026-03-15",
+        "end_date":    "2026-03-28",
+        "created_by":  "00000000-0000-0000-0000-000000000002",
+    },
+    # ── Infrastructure ────────────────────────────────────────────────────────
+    {
+        "sprint_id":   "00000000-0000-0000-0005-000000000006",
+        "project_id":  "00000000-0000-0000-0001-000000000003",
+        "sprint_name": "Sprint 1",
+        "goal":        "Set up staging environment and automated backups",
+        "status":      "active",
+        "start_date":  "2026-03-01",
+        "end_date":    "2026-03-14",
+        "created_by":  "00000000-0000-0000-0000-000000000003",
+    },
+]
+
 TICKETS = [
     # ── Sprintlify ────────────────────────────────────────────────────────────
     {
@@ -111,6 +177,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000002",
         "reporter_id": "00000000-0000-0000-0000-000000000001",
         "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_id":   "00000000-0000-0000-0005-000000000002",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000002",
@@ -122,6 +189,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000002",
         "reporter_id": "00000000-0000-0000-0000-000000000003",
         "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_id":   "00000000-0000-0000-0005-000000000003",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000003",
@@ -133,6 +201,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000003",
         "reporter_id": "00000000-0000-0000-0000-000000000001",
         "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_id":   "00000000-0000-0000-0005-000000000002",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000004",
@@ -144,6 +213,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000004",
         "reporter_id": "00000000-0000-0000-0000-000000000002",
         "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_id":   "00000000-0000-0000-0005-000000000002",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000005",
@@ -155,17 +225,19 @@ TICKETS = [
         "assignee_id": None,
         "reporter_id": "00000000-0000-0000-0000-000000000001",
         "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_id":   "00000000-0000-0000-0005-000000000003",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000006",
         "title":       "Migrate CI pipeline to new runner",
         "description": "Current runner is deprecated and will be removed next month",
         "priority":    "high",
-        "status":      "review",
+        "status":      "closed",
         "label":       "infra",
         "assignee_id": "00000000-0000-0000-0000-000000000004",
         "reporter_id": "00000000-0000-0000-0000-000000000003",
         "project_id":  "00000000-0000-0000-0001-000000000001",
+        "sprint_id":   "00000000-0000-0000-0005-000000000001",
     },
     # ── Mobile App ────────────────────────────────────────────────────────────
     {
@@ -178,6 +250,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000005",
         "reporter_id": "00000000-0000-0000-0000-000000000002",
         "project_id":  "00000000-0000-0000-0001-000000000002",
+        "sprint_id":   "00000000-0000-0000-0005-000000000004",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000008",
@@ -189,6 +262,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000005",
         "reporter_id": "00000000-0000-0000-0000-000000000002",
         "project_id":  "00000000-0000-0000-0001-000000000002",
+        "sprint_id":   "00000000-0000-0000-0005-000000000004",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000009",
@@ -200,6 +274,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000004",
         "reporter_id": "00000000-0000-0000-0000-000000000005",
         "project_id":  "00000000-0000-0000-0001-000000000002",
+        "sprint_id":   "00000000-0000-0000-0005-000000000004",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000010",
@@ -211,6 +286,7 @@ TICKETS = [
         "assignee_id": None,
         "reporter_id": "00000000-0000-0000-0000-000000000002",
         "project_id":  "00000000-0000-0000-0001-000000000002",
+        "sprint_id":   "00000000-0000-0000-0005-000000000005",
     },
     # ── Infrastructure ────────────────────────────────────────────────────────
     {
@@ -223,6 +299,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000004",
         "reporter_id": "00000000-0000-0000-0000-000000000003",
         "project_id":  "00000000-0000-0000-0001-000000000003",
+        "sprint_id":   "00000000-0000-0000-0005-000000000006",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000012",
@@ -234,6 +311,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000003",
         "reporter_id": "00000000-0000-0000-0000-000000000003",
         "project_id":  "00000000-0000-0000-0001-000000000003",
+        "sprint_id":   "00000000-0000-0000-0005-000000000006",
     },
     {
         "ticket_id":   "00000000-0000-0000-0002-000000000013",
@@ -245,6 +323,7 @@ TICKETS = [
         "assignee_id": "00000000-0000-0000-0000-000000000004",
         "reporter_id": "00000000-0000-0000-0000-000000000003",
         "project_id":  "00000000-0000-0000-0001-000000000003",
+        "sprint_id":   None,  # backlog
     },
 ]
 
@@ -304,10 +383,11 @@ TICKET_HISTORY = [
     ("00000000-0000-0000-0004-000000000002", "00000000-0000-0000-0002-000000000001", "00000000-0000-0000-0000-000000000001", "assigneeId",  None,          "00000000-0000-0000-0000-000000000002"),
     ("00000000-0000-0000-0004-000000000003", "00000000-0000-0000-0002-000000000006", "00000000-0000-0000-0000-000000000003", "status",      "open",        "in progress"),
     ("00000000-0000-0000-0004-000000000004", "00000000-0000-0000-0002-000000000006", "00000000-0000-0000-0000-000000000004", "status",      "in progress", "review"),
-    ("00000000-0000-0000-0004-000000000005", "00000000-0000-0000-0002-000000000009", "00000000-0000-0000-0000-000000000002", "status",      "open",        "in progress"),
-    ("00000000-0000-0000-0004-000000000006", "00000000-0000-0000-0002-000000000012", "00000000-0000-0000-0000-000000000003", "status",      "open",        "in progress"),
-    ("00000000-0000-0000-0004-000000000007", "00000000-0000-0000-0002-000000000003", "00000000-0000-0000-0000-000000000001", "priority",    "high",        "critical"),
-    ("00000000-0000-0000-0004-000000000008", "00000000-0000-0000-0002-000000000003", "00000000-0000-0000-0000-000000000001", "assigneeId",  None,          "00000000-0000-0000-0000-000000000003"),
+    ("00000000-0000-0000-0004-000000000005", "00000000-0000-0000-0002-000000000006", "00000000-0000-0000-0000-000000000004", "status",      "review",      "closed"),
+    ("00000000-0000-0000-0004-000000000006", "00000000-0000-0000-0002-000000000009", "00000000-0000-0000-0000-000000000002", "status",      "open",        "in progress"),
+    ("00000000-0000-0000-0004-000000000007", "00000000-0000-0000-0002-000000000012", "00000000-0000-0000-0000-000000000003", "status",      "open",        "in progress"),
+    ("00000000-0000-0000-0004-000000000008", "00000000-0000-0000-0002-000000000003", "00000000-0000-0000-0000-000000000001", "priority",    "high",        "critical"),
+    ("00000000-0000-0000-0004-000000000009", "00000000-0000-0000-0002-000000000003", "00000000-0000-0000-0000-000000000001", "assigneeId",  None,          "00000000-0000-0000-0000-000000000003"),
 ]
 
 # ─── seed functions ───────────────────────────────────────────────────────────
@@ -368,13 +448,36 @@ def seed_project_members(cur):
     print(f"  ✓ {len(PROJECT_MEMBERS)} project members seeded")
 
 
+def seed_sprints(cur):
+    print("  seeding sprints...")
+    for sprint in SPRINTS:
+        cur.execute(
+            """
+            INSERT INTO sprints (sprint_id, project_id, sprint_name, goal, status, start_date, end_date, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (sprint_id) DO NOTHING
+            """,
+            (
+                sprint["sprint_id"],
+                sprint["project_id"],
+                sprint["sprint_name"],
+                sprint["goal"],
+                sprint["status"],
+                sprint["start_date"],
+                sprint["end_date"],
+                sprint["created_by"],
+            ),
+        )
+    print(f"  ✓ {len(SPRINTS)} sprints seeded")
+
+
 def seed_tickets(cur):
     print("  seeding tickets...")
     for ticket in TICKETS:
         cur.execute(
             """
-            INSERT INTO tickets (ticket_id, title, description, priority, status, label, assignee_id, reporter_id, project_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO tickets (ticket_id, title, description, priority, status, label, assignee_id, reporter_id, project_id, sprint_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (ticket_id) DO NOTHING
             """,
             (
@@ -387,6 +490,7 @@ def seed_tickets(cur):
                 ticket["assignee_id"],
                 ticket["reporter_id"],
                 ticket["project_id"],
+                ticket["sprint_id"],
             ),
         )
     print(f"  ✓ {len(TICKETS)} tickets seeded")
@@ -433,6 +537,7 @@ def main():
         seed_users(cur)
         seed_projects(cur)
         seed_project_members(cur)
+        seed_sprints(cur)         # ← must run before tickets
         seed_tickets(cur)
         seed_comments(cur)
         seed_ticket_history(cur)

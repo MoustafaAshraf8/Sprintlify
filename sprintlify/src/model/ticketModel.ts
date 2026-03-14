@@ -157,6 +157,21 @@ export const updateTicket = async (params: {
   return result[0] ?? null;
 };
 
+// ─── find by sprint id ────────────────────────────────────────────────────────
+
+export const findTicketsBySprintId = async (params: {
+  drizzleClient: DrizzleClientType;
+  supabaseClient: SupabaseClientType;
+  sprintId: string;
+}) => {
+  const { drizzleClient, sprintId } = { ...params };
+
+  return await drizzleClient
+    .select()
+    .from(tickets)
+    .where(eq(tickets.sprintId, sprintId));
+};
+
 // ─── delete ───────────────────────────────────────────────────────────────────
 
 export const deleteTicket = async (params: {
