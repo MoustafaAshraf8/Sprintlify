@@ -11,6 +11,7 @@ import {
   deleteAllUserRefreshTokens,
 } from "../model/refreshTokenModel";
 import { RegisterDtoType, LoginDtoType, RefreshDtoType } from "../dto/authDto";
+import { ForbiddenError, ValidationError } from "../error/AppError";
 
 const generateTokens = async (params: {
   userId: string;
@@ -54,13 +55,6 @@ export const register = async (params: {
   const { drizzleClient, supabaseClient, jwtSecret, jwtRefreshSecret, data } = {
     ...params,
   };
-
-  const existing = await findUserByEmail({
-    drizzleClient,
-    supabaseClient,
-    email: data.email,
-  });
-  if (existing) throw new Error("Email already in use");
 
   const passwordHash = await bcrypt.hash(data.password, 10);
 
@@ -111,10 +105,9 @@ export const login = async (params: {
     supabaseClient,
     email: data.email,
   });
-  if (!user) throw new Error("Invalid credentials");
 
   const valid = await bcrypt.compare(data.password, user.passwordHash);
-  if (!valid) throw new Error("Invalid credentials");
+  if (!valid) throw new ValidationError();
 
   const tokens = await generateTokens({
     userId: user.userId,
@@ -160,7 +153,7 @@ export const refresh = async (params: {
   try {
     payload = await verify(data.refreshToken, jwtRefreshSecret, "HS256");
   } catch {
-    throw new Error("Invalid or expired refresh token");
+    throw new ValidationError();
   }
 
   // 2. check token exists in DB
@@ -177,7 +170,7 @@ export const refresh = async (params: {
       supabaseClient,
       userId: payload.id,
     });
-    throw new Error("Refresh token reuse detected — please login again");
+    throw new ForbiddenError();
   }
 
   // 3. delete used token (rotation)
@@ -222,7 +215,7 @@ export const authenticate = async (params: {
   try {
     payload = await verify(token, jwtSecret, "HS256");
   } catch {
-    throw new Error("Invalid or expired token");
+    throw new ValidationError();
   }
 
   const user = await findUserById({
@@ -230,7 +223,6 @@ export const authenticate = async (params: {
     supabaseClient,
     userId: payload.id,
   });
-  if (!user) throw new Error("User not found");
 
   return {
     userId: user.userId,
