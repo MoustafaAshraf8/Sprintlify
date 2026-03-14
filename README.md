@@ -1,8 +1,35 @@
 # Sprintlify
 
-Sprintlify is a team ticket management REST API built for developer teams to organize projects, track issues, and collaborate efficiently.
+Sprintlify is a sprint-based project planning, allowing project owners to organize tickets into fixed time periods and track progress across the team.
 
-Built with **Hono** on **Cloudflare Workers**, backed by **Supabase** (PostgreSQL) and **Drizzle ORM**.
+### How it works
+
+Project owners can create sprints with a defined start and end date (between 1 and 90 days). Tickets are assigned to sprints by project members, and unassigned tickets live in the project backlog. Each project can only have one active sprint at a time.
+
+### Sprint lifecycle
+
+A sprint follows a strict one-way state machine:
+
+```
+planned → active → completed
+```
+
+- **Planned** — sprint is created and tickets can be assigned to it
+- **Active** — sprint has started, work is in progress
+- **Completed** — owner marks the sprint as complete, unfinished tickets automatically return to the backlog
+
+### Sprint report
+
+When the project owner completes a sprint, a report is generated and cached. It includes:
+
+- Total tickets vs completed tickets and completion rate
+- Breakdown by priority — critical, high, medium, low
+- Breakdown by label — bug, feature, infra, docs, security, perf
+- List of uncompleted tickets carried over to the backlog
+
+### Backlog
+
+The backlog is the pool of unplanned tickets — any ticket with no sprint assigned. Tickets land in the backlog when they are first created, manually removed from a sprint, or automatically moved back when a sprint is completed with unfinished work.
 
 ## Features
 
