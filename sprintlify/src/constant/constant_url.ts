@@ -11,5 +11,7 @@ export const apiRoute = {
   tickets: "/api/projects/:projectId/tickets",
   ticketComments: "/api/projects/:projectId/tickets/:ticketId/comments",
   ticketHistory: "/api/projects/:projectId/tickets/:ticketId",
+  sprints: "/api/projects/:projectId/sprints",
+  backlog: "/api/projects/:projectId/backlog",
   users: "/api/users",
 };
