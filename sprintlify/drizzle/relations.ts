@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, refreshTokens, projects, tickets, ticketHistory, posts, ticketComments, projectMembers } from "./schema";
+import { users, refreshTokens, projects, tickets, ticketHistory, sprints, ticketComments, projectMembers } from "./schema";
 
 export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
 	user: one(users, {
@@ -12,13 +12,13 @@ export const usersRelations = relations(users, ({many}) => ({
 	refreshTokens: many(refreshTokens),
 	projects: many(projects),
 	ticketHistories: many(ticketHistory),
+	sprints: many(sprints),
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
 	}),
 	tickets_reporterId: many(tickets, {
 		relationName: "tickets_reporterId_users_userId"
 	}),
-	posts: many(posts),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
 	}),
@@ -33,6 +33,7 @@ export const projectsRelations = relations(projects, ({one, many}) => ({
 		fields: [projects.ownerId],
 		references: [users.userId]
 	}),
+	sprints: many(sprints),
 	tickets: many(tickets),
 	projectMembers: many(projectMembers),
 }));
@@ -64,6 +65,10 @@ export const ticketsRelations = relations(tickets, ({one, many}) => ({
 		fields: [tickets.projectId],
 		references: [projects.projectId]
 	}),
+	sprint: one(sprints, {
+		fields: [tickets.sprintId],
+		references: [sprints.sprintId]
+	}),
 	ticketComments_ticketId: many(ticketComments, {
 		relationName: "ticketComments_ticketId_tickets_ticketId"
 	}),
@@ -72,11 +77,16 @@ export const ticketsRelations = relations(tickets, ({one, many}) => ({
 	}),
 }));
 
-export const postsRelations = relations(posts, ({one}) => ({
+export const sprintsRelations = relations(sprints, ({one, many}) => ({
+	project: one(projects, {
+		fields: [sprints.projectId],
+		references: [projects.projectId]
+	}),
 	user: one(users, {
-		fields: [posts.userId],
+		fields: [sprints.createdBy],
 		references: [users.userId]
 	}),
+	tickets: many(tickets),
 }));
 
 export const ticketCommentsRelations = relations(ticketComments, ({one}) => ({

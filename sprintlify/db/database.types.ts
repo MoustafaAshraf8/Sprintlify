@@ -34,56 +34,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      posts: {
-        Row: {
-          content: string | null
-          created_at: string | null
-          id: string
-          likes_count: number | null
-          published_at: string | null
-          slug: string
-          status: string | null
-          title: string
-          updated_at: string | null
-          user_id: string
-          views_count: number | null
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string | null
-          id?: string
-          likes_count?: number | null
-          published_at?: string | null
-          slug: string
-          status?: string | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-          views_count?: number | null
-        }
-        Update: {
-          content?: string | null
-          created_at?: string | null
-          id?: string
-          likes_count?: number | null
-          published_at?: string | null
-          slug?: string
-          status?: string | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-          views_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "posts_users_id_fk"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       project_members: {
         Row: {
           joined_at: string | null
@@ -184,6 +134,60 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      sprints: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          end_date: string
+          goal: string | null
+          project_id: string
+          sprint_id: string
+          sprint_name: string
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          end_date: string
+          goal?: string | null
+          project_id: string
+          sprint_id?: string
+          sprint_name: string
+          start_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          end_date?: string
+          goal?: string | null
+          project_id?: string
+          sprint_id?: string
+          sprint_name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprints_created_by_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "sprints_project_fk"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["project_id"]
           },
         ]
       }
@@ -297,6 +301,7 @@ export type Database = {
           priority: string | null
           project_id: string | null
           reporter_id: string | null
+          sprint_id: string | null
           status: string | null
           ticket_id: string
           title: string
@@ -310,6 +315,7 @@ export type Database = {
           priority?: string | null
           project_id?: string | null
           reporter_id?: string | null
+          sprint_id?: string | null
           status?: string | null
           ticket_id?: string
           title: string
@@ -323,6 +329,7 @@ export type Database = {
           priority?: string | null
           project_id?: string | null
           reporter_id?: string | null
+          sprint_id?: string | null
           status?: string | null
           ticket_id?: string
           title?: string
@@ -335,6 +342,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "tickets_sprint_id_fk"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["sprint_id"]
           },
           {
             foreignKeyName: "tickets_users_assignee_fk"

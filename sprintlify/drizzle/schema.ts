@@ -1,4 +1,4 @@
-import { pgTable, index, foreignKey, unique, uuid, text, timestamp, check, integer, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, unique, uuid, text, timestamp, uniqueIndex, check, date, primaryKey } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -59,6 +59,36 @@ export const ticketHistory = pgTable("ticket_history", {
 		}).onUpdate("cascade").onDelete("cascade"),
 ]);
 
+export const sprints = pgTable("sprints", {
+	sprintId: uuid("sprint_id").defaultRandom().primaryKey().notNull(),
+	projectId: uuid("project_id").notNull(),
+	sprintName: text("sprint_name").notNull(),
+	goal: text(),
+	status: text().default('planned').notNull(),
+	startDate: date("start_date").notNull(),
+	endDate: date("end_date").notNull(),
+	createdBy: uuid("created_by").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	uniqueIndex("idx_sprints_one_active_per_project").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")).where(sql`(status = 'active'::text)`),
+	index("idx_sprints_project_id").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")),
+	index("idx_sprints_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.projectId],
+			foreignColumns: [projects.projectId],
+			name: "sprints_project_fk"
+		}).onUpdate("cascade").onDelete("cascade"),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.userId],
+			name: "sprints_created_by_fk"
+		}).onUpdate("cascade").onDelete("cascade"),
+	check("sprints_status_check", sql`status = ANY (ARRAY['planned'::text, 'active'::text, 'completed'::text])`),
+	check("sprints_date_check", sql`end_date > start_date`),
+	check("sprints_duration_check", sql`((end_date - start_date) >= 1) AND ((end_date - start_date) <= 30)`),
+]);
+
 export const tickets = pgTable("tickets", {
 	ticketId: uuid("ticket_id").defaultRandom().primaryKey().notNull(),
 	title: text().notNull(),
@@ -71,8 +101,10 @@ export const tickets = pgTable("tickets", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	projectId: uuid("project_id"),
+	sprintId: uuid("sprint_id"),
 }, (table) => [
 	index("idx_tickets_project").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")),
+	index("idx_tickets_sprint_id").using("btree", table.sprintId.asc().nullsLast().op("uuid_ops")),
 	foreignKey({
 			columns: [table.assigneeId],
 			foreignColumns: [users.userId],
@@ -88,31 +120,14 @@ export const tickets = pgTable("tickets", {
 			foreignColumns: [projects.projectId],
 			name: "tickets_project_id_fk"
 		}).onUpdate("cascade").onDelete("cascade"),
+	foreignKey({
+			columns: [table.sprintId],
+			foreignColumns: [sprints.sprintId],
+			name: "tickets_sprint_id_fk"
+		}).onUpdate("cascade").onDelete("set null"),
 	check("tickets_priority_check", sql`priority = ANY (ARRAY['critical'::text, 'high'::text, 'medium'::text, 'low'::text])`),
 	check("tickets_status_check", sql`status = ANY (ARRAY['open'::text, 'in progress'::text, 'review'::text, 'closed'::text])`),
 	check("tickets_label_check", sql`label = ANY (ARRAY['bug'::text, 'feature'::text, 'infra'::text, 'docs'::text, 'security'::text, 'perf'::text])`),
-]);
-
-export const posts = pgTable("posts", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
-	title: text().notNull(),
-	content: text(),
-	slug: text().notNull(),
-	status: text().default('draft'),
-	viewsCount: integer("views_count").default(0),
-	likesCount: integer("likes_count").default(0),
-	publishedAt: timestamp("published_at", { withTimezone: true, mode: 'string' }),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-}, (table) => [
-	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.userId],
-			name: "posts_users_id_fk"
-		}).onUpdate("cascade").onDelete("cascade"),
-	unique("posts_slug_key").on(table.slug),
-	check("posts_status_check", sql`status = ANY (ARRAY['draft'::text, 'published'::text, 'archived'::text])`),
 ]);
 
 export const users = pgTable("users", {
