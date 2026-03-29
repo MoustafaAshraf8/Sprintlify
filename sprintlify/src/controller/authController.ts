@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { AppContext } from "../types/AppContext";
 import { RegisterDto, LoginDto, RefreshDto } from "../dto/authDto";
 import * as authService from "../service/authService";
-
+import { getCtxVars } from "../helper/getCtxVars";
 // ─── register ─────────────────────────────────────────────────────────────────
 
 export const register = async (c: Context<AppContext>) => {
@@ -97,11 +97,4 @@ export const logout = async (c: Context<AppContext>) => {
   });
   return c.json({ message: "Logged out successfully" }, 200);
 };
-function getCtxVars(c: Context<AppContext, any, {}>): {
-  drizzleClient: any;
-  supabaseClient: any;
-  jwtSecret: any;
-  jwtRefreshSecret: any;
-} {
-  throw new Error("Function not implemented.");
-}
+
