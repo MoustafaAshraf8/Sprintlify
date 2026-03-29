@@ -1,6 +1,5 @@
 // service/authService.ts
 import bcrypt from "bcryptjs";
-import { sign, verify } from "hono/jwt";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
 import { findUserByEmail, findUserById, insertUser } from "../model/userModel";
@@ -12,35 +11,8 @@ import {
 } from "../model/refreshTokenModel";
 import { RegisterDtoType, LoginDtoType, RefreshDtoType } from "../dto/authDto";
 import { ForbiddenError, ValidationError } from "../error/AppError";
+import {generateTokens, verifyToken} from "../helper/tokenOperations";
 
-const generateTokens = async (params: {
-  userId: string;
-  securityLevel: string;
-  jwtSecret: string;
-  jwtRefreshSecret: string;
-}) => {
-  const { userId, securityLevel, jwtSecret, jwtRefreshSecret } = { ...params };
-
-  const accessToken = await sign(
-    {
-      id: userId,
-      securityLevel,
-      exp: Math.floor(Date.now() / 1000) + 60 * 15, // 15 min
-    },
-    jwtSecret,
-  );
-
-  const refreshToken = await sign(
-    {
-      id: userId,
-      securityLevel,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
-    },
-    jwtRefreshSecret,
-  );
-
-  return { accessToken, refreshToken };
-};
 
 const refreshTokenExpiresAt = () =>
   new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -151,7 +123,7 @@ export const refresh = async (params: {
   // 1. verify JWT signature
   let payload: any;
   try {
-    payload = await verify(data.refreshToken, jwtRefreshSecret, "HS256");
+    payload = await verifyToken({token:data.refreshToken, jwtSecret:jwtRefreshSecret});
   } catch {
     throw new ValidationError();
   }
@@ -213,7 +185,7 @@ export const authenticate = async (params: {
 
   let payload: any;
   try {
-    payload = await verify(token, jwtSecret, "HS256");
+    payload = await verifyToken({token:token, jwtSecret:jwtSecret});
   } catch {
     throw new ValidationError();
   }
