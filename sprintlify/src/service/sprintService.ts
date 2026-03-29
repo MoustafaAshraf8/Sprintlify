@@ -21,8 +21,7 @@ import { findProjectMember } from "../model/projectMemberModel";
 import { cacheKeys } from "../cache/cacheKeys";
 import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
 import { KVNamespace } from "@cloudflare/workers-types";
-
-// ─── verify helpers ───────────────────────────────────────────────────────────
+import { ForbiddenError, NotFoundError } from "../error/AppError";
 
 const verifyMembership = async (params: {
   drizzleClient: DrizzleClientType;
@@ -50,8 +49,8 @@ const verifyOwner = async (params: {
     supabaseClient,
     projectId,
   });
-  if (!project) throw new Error("Project not found");
-  if (project.ownerId !== userId) throw new Error("Forbidden");
+  if (!project) throw new NotFoundError();
+  if (project.ownerId !== userId) throw new ForbiddenError();
 
   return project;
 };
@@ -66,8 +65,6 @@ const verifySprintExists = async (params: {
   if (!sprint) throw new Error("Sprint not found");
   return sprint;
 };
-
-// ─── get all sprints ──────────────────────────────────────────────────────────
 
 export const getSprints = async (params: {
   drizzleClient: DrizzleClientType;
@@ -102,8 +99,6 @@ export const getSprints = async (params: {
   return data;
 };
 
-// ─── get active sprint ────────────────────────────────────────────────────────
-
 export const getActiveSprint = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -137,8 +132,6 @@ export const getActiveSprint = async (params: {
   return data;
 };
 
-// ─── get sprint by id ─────────────────────────────────────────────────────────
-
 export const getSprintById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -168,14 +161,11 @@ export const getSprintById = async (params: {
     sprintId,
     projectId,
   });
-  if (!data) throw new Error("Sprint not found");
 
   await cacheSet({ kv, key: cacheKey, data });
 
   return data;
 };
-
-// ─── get backlog ──────────────────────────────────────────────────────────────
 
 export const getBacklog = async (params: {
   drizzleClient: DrizzleClientType;
@@ -209,8 +199,6 @@ export const getBacklog = async (params: {
 
   return data;
 };
-
-// ─── create sprint ────────────────────────────────────────────────────────────
 
 export const createSprint = async (params: {
   drizzleClient: DrizzleClientType;
@@ -250,8 +238,6 @@ export const createSprint = async (params: {
   return sprint;
 };
 
-// ─── update sprint ────────────────────────────────────────────────────────────
-
 export const updateSprintById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -275,6 +261,7 @@ export const updateSprintById = async (params: {
 
   await verifyOwner({ drizzleClient, supabaseClient, projectId, userId });
 
+  // cannot remove this verify because it serves in the sprint.status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -283,8 +270,7 @@ export const updateSprintById = async (params: {
   });
 
   // can only update a planned sprint
-  if (sprint.status !== "planned")
-    throw new Error("Only planned sprints can be updated");
+  if (sprint.status !== "planned") throw new ForbiddenError();
 
   const updatedSprint = await updateSprint({
     drizzleClient,
@@ -311,8 +297,6 @@ export const updateSprintById = async (params: {
   return updatedSprint;
 };
 
-// ─── start sprint ─────────────────────────────────────────────────────────────
-
 export const startSprint = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -327,6 +311,7 @@ export const startSprint = async (params: {
 
   await verifyOwner({ drizzleClient, supabaseClient, projectId, userId });
 
+  // cannot remove the verify because it helps in the sprint status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -335,8 +320,7 @@ export const startSprint = async (params: {
   });
 
   // can only start a planned sprint
-  if (sprint.status !== "planned")
-    throw new Error("Only planned sprints can be started");
+  if (sprint.status !== "planned") throw new ForbiddenError();
 
   // check no other sprint is active — enforced at DB level too but we give a clear message
   const activeSprint = await findActiveSprintByProjectId({
@@ -344,8 +328,7 @@ export const startSprint = async (params: {
     supabaseClient,
     projectId,
   });
-  if (activeSprint)
-    throw new Error("A sprint is already active for this project");
+  if (activeSprint) throw new ForbiddenError();
 
   const updatedSprint = await updateSprintStatus({
     drizzleClient,
@@ -377,8 +360,6 @@ export const startSprint = async (params: {
   return updatedSprint;
 };
 
-// ─── complete sprint ──────────────────────────────────────────────────────────
-
 export const completeSprint = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -393,6 +374,7 @@ export const completeSprint = async (params: {
 
   await verifyOwner({ drizzleClient, supabaseClient, projectId, userId });
 
+  // cannot remove the verify because it helps in the sprint status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -401,8 +383,7 @@ export const completeSprint = async (params: {
   });
 
   // can only complete an active sprint
-  if (sprint.status !== "active")
-    throw new Error("Only active sprints can be completed");
+  if (sprint.status !== "active") throw new ForbiddenError();
 
   // move unfinished tickets back to backlog and complete sprint in parallel
   const [updatedSprint, unfinishedTickets] = await Promise.all([
@@ -460,8 +441,6 @@ export const completeSprint = async (params: {
   return { sprint: updatedSprint, report };
 };
 
-// ─── delete sprint ────────────────────────────────────────────────────────────
-
 export const deleteSprintById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -476,6 +455,7 @@ export const deleteSprintById = async (params: {
 
   await verifyOwner({ drizzleClient, supabaseClient, projectId, userId });
 
+  // cannot remove the verify because it helps in the sprint status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -484,8 +464,7 @@ export const deleteSprintById = async (params: {
   });
 
   // can only delete a planned sprint
-  if (sprint.status !== "planned")
-    throw new Error("Only planned sprints can be deleted");
+  if (sprint.status !== "planned") throw new ForbiddenError();
 
   await deleteSprint({ drizzleClient, supabaseClient, sprintId });
 
@@ -504,8 +483,6 @@ export const deleteSprintById = async (params: {
     cacheDel({ kv, key: cacheKeys.sprint(sprintId) }),
   ]);
 };
-
-// ─── add ticket to sprint ─────────────────────────────────────────────────────
 
 export const addTicketToSprintById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -535,6 +512,7 @@ export const addTicketToSprintById = async (params: {
     userId: userId,
   });
 
+  // cannot remove the verify because it helps in the sprint status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -543,20 +521,7 @@ export const addTicketToSprintById = async (params: {
   });
 
   // can only add tickets to a planned or active sprint
-  if (sprint.status === "completed")
-    throw new Error("Cannot add tickets to a completed sprint");
-
-  const ticket = await findTicketById({
-    drizzleClient,
-    supabaseClient,
-    ticketId,
-    projectId,
-  });
-  if (!ticket) throw new Error("Ticket not found");
-
-  // ticket already in this sprint
-  if (ticket.sprintId === sprintId)
-    throw new Error("Ticket already in this sprint");
+  if (sprint.status === "completed") throw new ForbiddenError();
 
   const updatedTicket = await addTicketToSprint({
     drizzleClient,
@@ -593,8 +558,6 @@ export const addTicketToSprintById = async (params: {
   return updatedTicket;
 };
 
-// ─── remove ticket from sprint ────────────────────────────────────────────────
-
 export const removeTicketFromSprintById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -623,6 +586,7 @@ export const removeTicketFromSprintById = async (params: {
     userId: userId,
   });
 
+  // cannot remove the verify because it helps in the sprint status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -633,18 +597,6 @@ export const removeTicketFromSprintById = async (params: {
   // can only remove tickets from a planned or active sprint
   if (sprint.status === "completed")
     throw new Error("Cannot remove tickets from a completed sprint");
-
-  const ticket = await findTicketById({
-    drizzleClient,
-    supabaseClient,
-    ticketId,
-    projectId,
-  });
-  if (!ticket) throw new Error("Ticket not found");
-
-  // ticket not in this sprint
-  if (ticket.sprintId !== sprintId)
-    throw new Error("Ticket is not in this sprint");
 
   const updatedTicket = await removeTicketFromSprint({
     drizzleClient,
@@ -679,8 +631,6 @@ export const removeTicketFromSprintById = async (params: {
 
   return updatedTicket;
 };
-
-// ─── sprint report builder ────────────────────────────────────────────────────
 
 const buildSprintReport = (params: { sprint: any; tickets: any[] }) => {
   const { sprint, tickets } = { ...params };
