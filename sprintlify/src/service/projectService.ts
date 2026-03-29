@@ -15,8 +15,7 @@ import {
 import { cacheKeys } from "../cache/cacheKeys";
 import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
 import { KVNamespace } from "@cloudflare/workers-types";
-
-// ─── get all ──────────────────────────────────────────────────────────────────
+import { ForbiddenError } from "../error/AppError";
 
 export const getProjects = async (params: {
   drizzleClient: DrizzleClientType;
@@ -40,8 +39,6 @@ export const getProjects = async (params: {
 
   return data;
 };
-
-// ─── get by id ────────────────────────────────────────────────────────────────
 
 export const getProjectById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -78,8 +75,6 @@ export const getProjectById = async (params: {
 
   return project;
 };
-
-// ─── create ───────────────────────────────────────────────────────────────────
 
 export const createProject = async (params: {
   drizzleClient: DrizzleClientType;
@@ -122,8 +117,6 @@ export const createProject = async (params: {
   return project;
 };
 
-// ─── update ───────────────────────────────────────────────────────────────────
-
 export const updateProjectById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -141,7 +134,6 @@ export const updateProjectById = async (params: {
     supabaseClient,
     projectId,
   });
-  if (!project) throw new Error("Project not found");
 
   if (project.ownerId !== userId) throw new Error("Forbidden");
 
@@ -172,8 +164,6 @@ export const updateProjectById = async (params: {
   return updatedProject;
 };
 
-// ─── delete ───────────────────────────────────────────────────────────────────
-
 export const deleteProjectById = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -186,13 +176,12 @@ export const deleteProjectById = async (params: {
   };
 
   const project = await findProjectById({
-    drizzleClient,
-    supabaseClient,
-    projectId,
-  });
-  if (!project) throw new Error("Project not found");
-
-  if (project.ownerId !== userId) throw new Error("Forbidden");
+     drizzleClient,
+     supabaseClient,
+     projectId,
+   });
+      
+  if (project.ownerId !== userId) throw new ForbiddenError();
 
   await deleteProject({
     drizzleClient,

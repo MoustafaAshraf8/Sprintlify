@@ -13,17 +13,17 @@ export const usersRelations = relations(users, ({many}) => ({
 	projects: many(projects),
 	ticketHistories: many(ticketHistory),
 	sprints: many(sprints),
+	ticketComments_userId: many(ticketComments, {
+		relationName: "ticketComments_userId_users_userId"
+	}),
+	ticketComments_userId: many(ticketComments, {
+		relationName: "ticketComments_userId_users_userId"
+	}),
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
 	}),
 	tickets_reporterId: many(tickets, {
 		relationName: "tickets_reporterId_users_userId"
-	}),
-	ticketComments_userId: many(ticketComments, {
-		relationName: "ticketComments_userId_users_userId"
-	}),
-	ticketComments_userId: many(ticketComments, {
-		relationName: "ticketComments_userId_users_userId"
 	}),
 	projectMembers: many(projectMembers),
 }));
@@ -51,6 +51,12 @@ export const ticketHistoryRelations = relations(ticketHistory, ({one}) => ({
 
 export const ticketsRelations = relations(tickets, ({one, many}) => ({
 	ticketHistories: many(ticketHistory),
+	ticketComments_ticketId: many(ticketComments, {
+		relationName: "ticketComments_ticketId_tickets_ticketId"
+	}),
+	ticketComments_ticketId: many(ticketComments, {
+		relationName: "ticketComments_ticketId_tickets_ticketId"
+	}),
 	user_assigneeId: one(users, {
 		fields: [tickets.assigneeId],
 		references: [users.userId],
@@ -68,12 +74,6 @@ export const ticketsRelations = relations(tickets, ({one, many}) => ({
 	sprint: one(sprints, {
 		fields: [tickets.sprintId],
 		references: [sprints.sprintId]
-	}),
-	ticketComments_ticketId: many(ticketComments, {
-		relationName: "ticketComments_ticketId_tickets_ticketId"
-	}),
-	ticketComments_ticketId: many(ticketComments, {
-		relationName: "ticketComments_ticketId_tickets_ticketId"
 	}),
 }));
 

@@ -1,4 +1,3 @@
-// model/userModel.ts
 import { eq } from "drizzle-orm";
 import { users } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
@@ -6,8 +5,6 @@ import { SupabaseClientType } from "../types/supabaseClientType";
 import { UpdateUserDtoType } from "../dto/userDto";
 import { dbQuery } from "../helper/dbQuery";
 import { NotFoundError } from "../error/AppError";
-
-// ─── find all ─────────────────────────────────────────────────────────────────
 
 export const findAllUsers = async (params: {
   drizzleClient: DrizzleClientType;
@@ -32,8 +29,6 @@ export const findAllUsers = async (params: {
 
   return result;
 };
-
-// ─── find by id ───────────────────────────────────────────────────────────────
 
 export const findUserById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -65,8 +60,6 @@ export const findUserById = async (params: {
   return result[0];
 };
 
-// ─── find by email ────────────────────────────────────────────────────────────
-
 export const findUserByEmail = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -82,8 +75,6 @@ export const findUserByEmail = async (params: {
 
   return result[0];
 };
-
-// ─── insert ───────────────────────────────────────────────────────────────────
 
 export const insertUser = async (params: {
   drizzleClient: DrizzleClientType;
@@ -107,13 +98,8 @@ export const insertUser = async (params: {
     }),
   );
 
-  console.log("result");
-  console.log(result);
-
   return result[0];
 };
-
-// ─── update ───────────────────────────────────────────────────────────────────
 
 export const updateUser = async (params: {
   drizzleClient: DrizzleClientType;
