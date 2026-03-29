@@ -7,6 +7,8 @@ import {
   TicketFilterDtoType,
   UpdateTicketDtoType,
 } from "../dto/ticketDto";
+import { dbQuery } from "../helper/dbQuery";
+import { NotFoundError } from "../error/AppError";
 
 // ─── find all with filters ────────────────────────────────────────────────────
 
@@ -105,15 +107,18 @@ export const findTicketById = async (params: {
 }) => {
   const { drizzleClient, ticketId, projectId } = { ...params };
 
-  const result = await drizzleClient
-    .select()
-    .from(tickets)
-    .where(
-      and(eq(tickets.ticketId, ticketId), eq(tickets.projectId, projectId)),
-    )
-    .limit(1);
+  const result = await dbQuery(() =>
+    drizzleClient
+      .select()
+      .from(tickets)
+      .where(
+        and(eq(tickets.ticketId, ticketId), eq(tickets.projectId, projectId)),
+      ),
+  );
 
-  return result[0] ?? null;
+  if (!result[0]) throw new NotFoundError();
+
+  return result[0];
 };
 
 // ─── insert ───────────────────────────────────────────────────────────────────

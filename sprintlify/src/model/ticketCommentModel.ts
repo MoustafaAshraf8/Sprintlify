@@ -2,6 +2,9 @@ import { and, eq, desc } from "drizzle-orm";
 import { ticketComments } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
+import { dbQuery } from "../helper/dbQuery";
+import { NotFoundError } from "../error/AppError";
+import { DatabaseError } from "../error/AppError";
 
 export const findTicketCommentsByTicketId = async (params: {
   drizzleClient: DrizzleClientType;
@@ -10,11 +13,13 @@ export const findTicketCommentsByTicketId = async (params: {
 }) => {
   const { drizzleClient, ticketId } = { ...params };
 
-  return await drizzleClient
-    .select()
-    .from(ticketComments)
-    .where(eq(ticketComments.ticketId, ticketId))
-    .orderBy(desc(ticketComments.createdAt));
+  return await dbQuery(() =>
+    drizzleClient
+      .select()
+      .from(ticketComments)
+      .where(eq(ticketComments.ticketId, ticketId))
+      .orderBy(desc(ticketComments.createdAt)),
+  );
 };
 
 export const findTicketCommentById = async (params: {
@@ -25,18 +30,21 @@ export const findTicketCommentById = async (params: {
 }) => {
   const { drizzleClient, commentId, ticketId } = { ...params };
 
-  const result = await drizzleClient
-    .select()
-    .from(ticketComments)
-    .where(
-      and(
-        eq(ticketComments.ticketCommentId, commentId),
-        eq(ticketComments.ticketId, ticketId),
+  const result = await dbQuery(() =>
+    drizzleClient
+      .select()
+      .from(ticketComments)
+      .where(
+        and(
+          eq(ticketComments.ticketCommentId, commentId),
+          eq(ticketComments.ticketId, ticketId),
+        ),
       ),
-    )
-    .limit(1);
+  );
 
-  return result[0] ?? null;
+  if (!result[0]) throw new NotFoundError();
+
+  return result[0];
 };
 
 export const insertTicketComment = async (params: {
@@ -50,10 +58,11 @@ export const insertTicketComment = async (params: {
 }) => {
   const { drizzleClient, data } = { ...params };
 
-  const result = await drizzleClient
-    .insert(ticketComments)
-    .values(data)
-    .returning();
+  const result = await dbQuery(() =>
+    drizzleClient.insert(ticketComments).values(data).returning(),
+  );
+
+  if (!result[0]) throw new DatabaseError();
 
   return result[0];
 };
@@ -65,7 +74,14 @@ export const deleteTicketComment = async (params: {
 }) => {
   const { drizzleClient, commentId } = { ...params };
 
-  await drizzleClient
-    .delete(ticketComments)
-    .where(eq(ticketComments.ticketCommentId, commentId));
+  const result = await dbQuery(() =>
+    drizzleClient
+      .delete(ticketComments)
+      .where(eq(ticketComments.ticketCommentId, commentId))
+      .returning(),
+  );
+
+  if (!result[0]) throw new DatabaseError();
+
+  return;
 };
