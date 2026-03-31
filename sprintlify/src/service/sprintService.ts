@@ -14,6 +14,7 @@ import {
   removeTicketFromSprint,
   moveUnfinishedTicketsToBacklog,
   deleteSprint,
+  completeSprintAndRemoveTicketsToBacklog,
 } from "../model/sprintModel";
 import { findTicketById } from "../model/ticketModel";
 import { findProjectById } from "../model/projectModel";
@@ -62,7 +63,6 @@ const verifySprintExists = async (params: {
   projectId: string;
 }) => {
   const sprint = await findSprintById({ ...params });
-  if (!sprint) throw new Error("Sprint not found");
   return sprint;
 };
 
@@ -374,7 +374,6 @@ export const completeSprint = async (params: {
 
   await verifyOwner({ drizzleClient, supabaseClient, projectId, userId });
 
-  // cannot remove the verify because it helps in the sprint status check
   const sprint = await verifySprintExists({
     drizzleClient,
     supabaseClient,
@@ -382,21 +381,31 @@ export const completeSprint = async (params: {
     projectId,
   });
 
-  // can only complete an active sprint
   if (sprint.status !== "active") throw new ForbiddenError();
 
-  // move unfinished tickets back to backlog and complete sprint in parallel
-  const [updatedSprint, unfinishedTickets] = await Promise.all([
-    updateSprintStatus({
-      drizzleClient,
-      supabaseClient,
-      sprintId,
-      status: "completed",
+  // invalidate cache
+  await Promise.all([
+    cacheDel({ kv, key: cacheKeys.sprint(sprintId) }),
+    cacheDel({ kv, key: cacheKeys.sprint_report(sprintId) }),
+    cacheDel({
+      kv,
+      key: cacheKeys.project_sprints(projectId),
     }),
-    moveUnfinishedTicketsToBacklog({ drizzleClient, supabaseClient, sprintId }),
+    cacheDel({
+      kv,
+      key: cacheKeys.project_backlog(projectId),
+    }),
+    cacheDel({ kv, key: cacheKeys.sprint_active(projectId) }),
+    cacheDel({ kv, key: cacheKeys.project_tickets(projectId) }),
   ]);
 
-  // build sprint report
+  const updatedSprint = await completeSprintAndRemoveTicketsToBacklog({
+    drizzleClient,
+    supabaseClient,
+    sprintId,
+    status: "completed",
+  });
+
   const allTickets = await findSprintWithTickets({
     drizzleClient,
     supabaseClient,
@@ -421,6 +430,7 @@ export const completeSprint = async (params: {
     projectId,
   });
 
+  // update cache
   await Promise.all([
     cacheSet({ kv, key: cacheKeys.sprint(sprintId), data: updatedSprint }),
     cacheSet({ kv, key: cacheKeys.sprint_report(sprintId), data: report }),
@@ -434,8 +444,6 @@ export const completeSprint = async (params: {
       key: cacheKeys.project_backlog(projectId),
       data: updatedBacklog,
     }),
-    cacheDel({ kv, key: cacheKeys.sprint_active(projectId) }),
-    cacheDel({ kv, key: cacheKeys.project_tickets(projectId) }),
   ]);
 
   return { sprint: updatedSprint, report };
@@ -674,7 +682,7 @@ const buildSprintReport = (params: { sprint: any; tickets: any[] }) => {
   const end = new Date(sprint.endDate);
   const duration = Math.ceil(
     (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-  );
+  ); // convert to days
 
   return {
     sprintId: sprint.sprintId,

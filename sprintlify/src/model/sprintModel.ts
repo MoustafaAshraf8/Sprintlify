@@ -110,9 +110,10 @@ export const findSprintWithTickets = async (params: {
 
   return {
     ...sprintData,
-    tickets: result
-      .filter((row) => row.ticket!.ticketId !== null)
-      .map((row) => row.ticket),
+    tickets:
+      result
+        .filter((row) => (row.ticket ? row.ticket.ticketId : null))
+        .map((row) => row.ticket) ?? [],
   };
 };
 
@@ -233,6 +234,37 @@ export const removeTicketFromSprint = async (params: {
   if (!result[0]) throw new DatabaseError();
 
   return result[0];
+};
+
+export const completeSprintAndRemoveTicketsToBacklog = async (params: {
+  drizzleClient: DrizzleClientType;
+  supabaseClient: SupabaseClientType;
+  sprintId: string;
+  status: "active" | "completed";
+}) => {
+  const { drizzleClient, sprintId, status } = { ...params };
+
+  const result = await drizzleClient.transaction(async (tx) => {
+    const updateSprintResult = await dbQuery(() =>
+      drizzleClient
+        .update(sprints)
+        .set({ status: status })
+        .where(eq(sprints.sprintId, sprintId))
+        .returning(),
+    );
+
+    if (!updateSprintResult[0]) throw new DatabaseError();
+
+    const movedTickets = await tx
+      .update(tickets)
+      .set({ sprintId: null })
+      .where(and(eq(tickets.sprintId, sprintId), ne(tickets.status, "closed")))
+      .returning();
+
+    return updateSprintResult[0];
+  });
+
+  return result;
 };
 
 export const moveUnfinishedTicketsToBacklog = async (params: {
