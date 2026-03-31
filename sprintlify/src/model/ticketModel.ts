@@ -2,15 +2,9 @@ import { and, asc, count, desc, eq, ilike, or, SQL } from "drizzle-orm";
 import { tickets } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
-import {
-  CreateTicketDtoType,
-  TicketFilterDtoType,
-  UpdateTicketDtoType,
-} from "../dto/ticketDto";
+import { TicketFilterDtoType, UpdateTicketDtoType } from "../dto/ticketDto";
 import { dbQuery } from "../helper/dbQuery";
-import { NotFoundError } from "../error/AppError";
-
-// ─── find all with filters ────────────────────────────────────────────────────
+import { DatabaseError, NotFoundError } from "../error/AppError";
 
 export const findTicketsByProjectId = async (params: {
   drizzleClient: DrizzleClientType;
@@ -31,8 +25,6 @@ export const findTicketsByProjectId = async (params: {
     limit,
   } = filters;
 
-  // ─── build where conditions ───────────────────────────────────────────────
-
   const conditions: SQL[] = [eq(tickets.projectId, projectId)];
 
   if (status) conditions.push(eq(tickets.status, status));
@@ -48,8 +40,6 @@ export const findTicketsByProjectId = async (params: {
     );
   }
 
-  // ─── build order by ───────────────────────────────────────────────────────
-
   const orderByColumn =
     sortBy === "priority"
       ? tickets.priority
@@ -60,25 +50,25 @@ export const findTicketsByProjectId = async (params: {
   const orderBy =
     sortOrder === "asc" ? asc(orderByColumn) : desc(orderByColumn);
 
-  // ─── pagination ───────────────────────────────────────────────────────────
-
   const offset = (page - 1) * limit;
 
-  // ─── run queries in parallel ──────────────────────────────────────────────
-
   const [data, totalResult] = await Promise.all([
-    drizzleClient
-      .select()
-      .from(tickets)
-      .where(and(...conditions))
-      .orderBy(orderBy)
-      .limit(limit)
-      .offset(offset),
+    dbQuery(() =>
+      drizzleClient
+        .select()
+        .from(tickets)
+        .where(and(...conditions))
+        .orderBy(orderBy)
+        .limit(limit)
+        .offset(offset),
+    ),
 
-    drizzleClient
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(...conditions)),
+    dbQuery(() =>
+      drizzleClient
+        .select({ count: count() })
+        .from(tickets)
+        .where(and(...conditions)),
+    ),
   ]);
 
   const total = totalResult[0].count;
@@ -96,8 +86,6 @@ export const findTicketsByProjectId = async (params: {
     },
   };
 };
-
-// ─── find by id ───────────────────────────────────────────────────────────────
 
 export const findTicketById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -121,8 +109,6 @@ export const findTicketById = async (params: {
   return result[0];
 };
 
-// ─── insert ───────────────────────────────────────────────────────────────────
-
 export const insertTicket = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -132,18 +118,20 @@ export const insertTicket = async (params: {
     priority: string;
     label?: string;
     assigneeId?: string;
-    reporterId: string;
+    userId: string;
     projectId: string;
   };
 }) => {
   const { drizzleClient, data } = { ...params };
 
-  const result = await drizzleClient.insert(tickets).values(data).returning();
+  const result = await dbQuery(() =>
+    drizzleClient.insert(tickets).values(data).returning(),
+  );
+
+  if (!result[0]) throw new DatabaseError();
 
   return result[0];
 };
-
-// ─── update ───────────────────────────────────────────────────────────────────
 
 export const updateTicket = async (params: {
   drizzleClient: DrizzleClientType;
@@ -153,16 +141,18 @@ export const updateTicket = async (params: {
 }) => {
   const { drizzleClient, ticketId, data } = { ...params };
 
-  const result = await drizzleClient
-    .update(tickets)
-    .set(data)
-    .where(eq(tickets.ticketId, ticketId))
-    .returning();
+  const result = await dbQuery(() =>
+    drizzleClient
+      .update(tickets)
+      .set(data)
+      .where(eq(tickets.ticketId, ticketId))
+      .returning(),
+  );
 
-  return result[0] ?? null;
+  if (!result[0]) throw new DatabaseError();
+
+  return result[0];
 };
-
-// ─── find by sprint id ────────────────────────────────────────────────────────
 
 export const findTicketsBySprintId = async (params: {
   drizzleClient: DrizzleClientType;
@@ -171,10 +161,11 @@ export const findTicketsBySprintId = async (params: {
 }) => {
   const { drizzleClient, sprintId } = { ...params };
 
-  return await drizzleClient
-    .select()
-    .from(tickets)
-    .where(eq(tickets.sprintId, sprintId));
+  const result = await dbQuery(() =>
+    drizzleClient.select().from(tickets).where(eq(tickets.sprintId, sprintId)),
+  );
+
+  return result[0] ? result[0] : [];
 };
 
 // ─── delete ───────────────────────────────────────────────────────────────────
@@ -186,5 +177,7 @@ export const deleteTicket = async (params: {
 }) => {
   const { drizzleClient, ticketId } = { ...params };
 
-  await drizzleClient.delete(tickets).where(eq(tickets.ticketId, ticketId));
+  await dbQuery(() =>
+    drizzleClient.delete(tickets).where(eq(tickets.ticketId, ticketId)),
+  );
 };

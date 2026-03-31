@@ -91,7 +91,7 @@ export const findSprintWithTickets = async (params: {
           status: tickets.status,
           label: tickets.label,
           assigneeId: tickets.assigneeId,
-          reporterId: tickets.reporterId,
+          userId: tickets.userId,
           sprintId: tickets.sprintId,
           createdAt: tickets.createdAt,
           updatedAt: tickets.updatedAt,

@@ -300,12 +300,12 @@ export type Database = {
           label: string | null
           priority: string | null
           project_id: string | null
-          reporter_id: string | null
           sprint_id: string | null
           status: string | null
           ticket_id: string
           title: string
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           assignee_id?: string | null
@@ -314,12 +314,12 @@ export type Database = {
           label?: string | null
           priority?: string | null
           project_id?: string | null
-          reporter_id?: string | null
           sprint_id?: string | null
           status?: string | null
           ticket_id?: string
           title: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           assignee_id?: string | null
@@ -328,12 +328,12 @@ export type Database = {
           label?: string | null
           priority?: string | null
           project_id?: string | null
-          reporter_id?: string | null
           sprint_id?: string | null
           status?: string | null
           ticket_id?: string
           title?: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -359,7 +359,7 @@ export type Database = {
           },
           {
             foreignKeyName: "tickets_users_reporter_fk"
-            columns: ["reporter_id"]
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
