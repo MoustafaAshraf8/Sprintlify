@@ -1,10 +1,10 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { projectMembers, users } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
-import { findProjectById } from "./projectModel";
-
-// ─── find member ──────────────────────────────────────────────────────────────
+import { dbQuery } from "../helper/dbQuery";
+import { NotFoundError } from "../error/AppError";
+import { DatabaseError } from "../error/AppError";
 
 export const findProjectMember = async (params: {
   drizzleClient: DrizzleClientType;
@@ -14,7 +14,7 @@ export const findProjectMember = async (params: {
 }) => {
   const { drizzleClient, projectId, userId } = { ...params };
 
-  const result = await drizzleClient
+  const result = await dbQuery(()=>drizzleClient
     .select()
     .from(projectMembers)
     .where(
@@ -22,13 +22,12 @@ export const findProjectMember = async (params: {
         eq(projectMembers.projectId, projectId),
         eq(projectMembers.userId, userId),
       ),
-    )
-    .limit(1);
+    ));
 
-  return result[0] ?? null;
+    if(!result[0]) throw new NotFoundError();
+
+  return result[0];
 };
-
-// ─── find all members ─────────────────────────────────────────────────────────
 
 export const findProjectMembers = async (params: {
   drizzleClient: DrizzleClientType;
@@ -37,7 +36,7 @@ export const findProjectMembers = async (params: {
 }) => {
   const { drizzleClient, projectId } = { ...params };
 
-  return await drizzleClient
+  return await dbQuery(()=>drizzleClient
     .select({
       userId: users.userId,
       username: users.username,
@@ -47,10 +46,8 @@ export const findProjectMembers = async (params: {
     })
     .from(projectMembers)
     .innerJoin(users, eq(projectMembers.userId, users.userId))
-    .where(eq(projectMembers.projectId, projectId));
+    .where(eq(projectMembers.projectId, projectId)));
 };
-
-// ─── insert member ────────────────────────────────────────────────────────────
 
 export const insertProjectMember = async (params: {
   drizzleClient: DrizzleClientType;
@@ -63,15 +60,15 @@ export const insertProjectMember = async (params: {
 }) => {
   const { drizzleClient, data } = { ...params };
 
-  const result = await drizzleClient
+  const result = await dbQuery(()=>drizzleClient
     .insert(projectMembers)
     .values(data)
-    .returning();
+    .returning());
+
+    if(!result[0]) throw new DatabaseError();
 
   return result[0];
 };
-
-// ─── delete member ────────────────────────────────────────────────────────────
 
 export const deleteProjectMember = async (params: {
   drizzleClient: DrizzleClientType;
@@ -84,42 +81,18 @@ export const deleteProjectMember = async (params: {
     ...params,
   };
 
-  // verify project exists
-  const project = await findProjectById({
-    drizzleClient,
-    supabaseClient,
-    projectId,
-  });
-  if (!project) throw new Error("Project not found");
-
-  // verify current_user is the owner
-  if (project.ownerId !== userId) throw new Error("Forbidden");
-
-  // prevent owner from being removed
-  if (userId === project.ownerId) {
-    throw new Error("Owner cannot be removed from the project");
-  }
-
-  // prevent user from removing themselves  ← new check
-  if (userId === unwantedId) {
-    throw new Error("You cannot remove yourself from the project");
-  }
-
-  // verify target user is actually a member
-  const isMember = await findProjectMember({
-    drizzleClient,
-    supabaseClient,
-    projectId,
-    userId: unwantedId,
-  });
-  if (!isMember) throw new Error("User is not a member of this project");
-
-  await drizzleClient
+  const res = await dbQuery(()=>drizzleClient
     .delete(projectMembers)
     .where(
       and(
         eq(projectMembers.projectId, projectId),
         eq(projectMembers.userId, unwantedId),
+        ne(projectMembers.userId, userId)
       ),
-    );
+    ).returning());
+
+    if(!res[0]) throw new DatabaseError();
+    
+    return;
+
 };

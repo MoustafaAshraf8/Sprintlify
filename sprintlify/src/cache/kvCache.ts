@@ -2,8 +2,6 @@ import { KVNamespace } from "@cloudflare/workers-types";
 
 const DEFAULT_TTL = 60 * 5; // 5 minutes
 
-// ─── get ──────────────────────────────────────────────────────────────────────
-
 export const cacheGet = async <T>(params: {
   kv: KVNamespace;
   key: string;
@@ -16,8 +14,6 @@ export const cacheGet = async <T>(params: {
   return JSON.parse(cached) as T;
 };
 
-// ─── set ──────────────────────────────────────────────────────────────────────
-
 export const cacheSet = async <T>(params: {
   kv: KVNamespace;
   key: string;
@@ -28,8 +24,6 @@ export const cacheSet = async <T>(params: {
 
   await kv.put(key, JSON.stringify(data), { expirationTtl: ttl });
 };
-
-// ─── delete ───────────────────────────────────────────────────────────────────
 
 export const cacheDel = async (params: {
   kv: KVNamespace;
