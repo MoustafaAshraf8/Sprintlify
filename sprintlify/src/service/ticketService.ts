@@ -18,17 +18,14 @@ import { cacheKeys } from "../cache/cacheKeys";
 import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
 import { KVNamespace } from "@cloudflare/workers-types";
 import { insertTicketHistoryEntries } from "../model/ticketHistoryModel";
-
-// ─── verify helpers ───────────────────────────────────────────────────────────
+import { ForbiddenError } from "../error/AppError";
 
 const verifyProjectExists = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
   projectId: string;
 }) => {
-  const project = await findProjectById({ ...params });
-  if (!project) throw new Error("Project not found");
-  return project;
+  return await findProjectById({ ...params });
 };
 
 const verifyMembership = async (params: {
@@ -37,32 +34,26 @@ const verifyMembership = async (params: {
   projectId: string;
   userId: string;
 }) => {
-  const member = await findProjectMember({ ...params });
-  if (!member) throw new Error("Forbidden");
-  return member;
+  return await findProjectMember({ ...params });
 };
-
-// ─── get all ──────────────────────────────────────────────────────────────────
 
 export const getTickets = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
   kv: KVNamespace;
   projectId: string;
-  requesterId: string;
+  userId: string;
   filters: TicketFilterDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, kv, projectId, requesterId, filters } =
-    {
-      ...params,
-    };
+  const { drizzleClient, supabaseClient, kv, projectId, userId, filters } = {
+    ...params,
+  };
 
-  await verifyProjectExists({ drizzleClient, supabaseClient, projectId });
   await verifyMembership({
     drizzleClient,
     supabaseClient,
     projectId,
-    userId: requesterId,
+    userId: userId,
   });
 
   const cacheKey = cacheKeys.project_tickets(projectId);
@@ -77,9 +68,8 @@ export const getTickets = async (params: {
   });
 
   await cacheSet({ kv, key: cacheKey, data });
+  return data;
 };
-
-// ─── get by id ────────────────────────────────────────────────────────────────
 
 export const getTicketById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -87,25 +77,17 @@ export const getTicketById = async (params: {
   kv: KVNamespace;
   projectId: string;
   ticketId: string;
-  requesterId: string;
+  userId: string;
 }) => {
-  const {
-    drizzleClient,
-    supabaseClient,
-    kv,
-    projectId,
-    ticketId,
-    requesterId,
-  } = {
+  const { drizzleClient, supabaseClient, kv, projectId, ticketId, userId } = {
     ...params,
   };
 
-  await verifyProjectExists({ drizzleClient, supabaseClient, projectId });
   await verifyMembership({
     drizzleClient,
     supabaseClient,
     projectId,
-    userId: requesterId,
+    userId,
   });
 
   const cacheKey = cacheKeys.ticket(ticketId);
@@ -118,60 +100,42 @@ export const getTicketById = async (params: {
     ticketId,
     projectId,
   });
-  if (!ticket) throw new Error("Ticket not found");
 
   await cacheSet({ kv, key: cacheKey, data: ticket });
 
   return ticket;
 };
 
-// ─── create ───────────────────────────────────────────────────────────────────
-
 export const createTicket = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
   kv: KVNamespace;
   projectId: string;
-  requesterId: string;
+  userId: string;
   data: CreateTicketDtoType;
 }) => {
-  const { drizzleClient, supabaseClient, kv, projectId, requesterId, data } = {
+  const { drizzleClient, supabaseClient, kv, projectId, userId, data } = {
     ...params,
   };
 
-  await verifyProjectExists({ drizzleClient, supabaseClient, projectId });
   await verifyMembership({
     drizzleClient,
     supabaseClient,
     projectId,
-    userId: requesterId,
+    userId,
   });
-
-  // verify assignee is a member if provided
-  if (data.assigneeId) {
-    const assigneeMember = await findProjectMember({
-      drizzleClient,
-      supabaseClient,
-      projectId,
-      userId: data.assigneeId,
-    });
-    if (!assigneeMember) throw new Error("Assignee is not a project member");
-  }
 
   const ticket = await insertTicket({
     drizzleClient,
     supabaseClient,
-    data: { ...data, reporterId: requesterId, projectId },
+    data: { ...data, userId: userId, projectId },
   });
 
-  // invalidation: purge + tag-based
   await cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
   await cacheSet({ kv, key: cacheKeys.ticket(ticket.ticketId), data: ticket });
 
   return ticket;
 };
-
-// ─── update ───────────────────────────────────────────────────────────────────
 
 export const updateTicketById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -179,7 +143,7 @@ export const updateTicketById = async (params: {
   kv: KVNamespace;
   projectId: string;
   ticketId: string;
-  requesterId: string;
+  userId: string;
   data: UpdateTicketDtoType;
 }) => {
   const {
@@ -188,16 +152,15 @@ export const updateTicketById = async (params: {
     kv,
     projectId,
     ticketId,
-    requesterId,
+    userId,
     data,
   } = { ...params };
 
-  await verifyProjectExists({ drizzleClient, supabaseClient, projectId });
   await verifyMembership({
     drizzleClient,
     supabaseClient,
     projectId,
-    userId: requesterId,
+    userId: userId,
   });
 
   const ticket = await findTicketById({
@@ -206,7 +169,6 @@ export const updateTicketById = async (params: {
     ticketId,
     projectId,
   });
-  if (!ticket) throw new Error("Ticket not found");
 
   // only assignee, reporter or owner can update
   const project = await findProjectById({
@@ -216,22 +178,11 @@ export const updateTicketById = async (params: {
   });
 
   const canUpdate =
-    ticket.reporterId === requesterId ||
-    ticket.assigneeId === requesterId ||
-    project!.ownerId === requesterId;
+    ticket.userId === userId ||
+    ticket.assigneeId === userId ||
+    project!.ownerId === userId;
 
-  if (!canUpdate) throw new Error("Forbidden");
-
-  // verify new assignee is a member if provided
-  if (data.assigneeId) {
-    const assigneeMember = await findProjectMember({
-      drizzleClient,
-      supabaseClient,
-      projectId,
-      userId: data.assigneeId,
-    });
-    if (!assigneeMember) throw new Error("Assignee is not a project member");
-  }
+  if (!canUpdate) throw new ForbiddenError();
 
   const TRACKED_FIELDS = [
     "status",
@@ -247,7 +198,7 @@ export const updateTicketById = async (params: {
       Object(data)[field] !== Object(ticket)[field],
   ).map((field) => ({
     ticketId,
-    changedBy: requesterId,
+    changedBy: userId,
     field,
     oldValue:
       Object(ticket)[field] != null ? String(Object(ticket)[field]) : null,
@@ -266,9 +217,9 @@ export const updateTicketById = async (params: {
   cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
   cacheSet({ kv, key: cacheKeys.ticket(ticketId), data: updatedTicket });
   cacheSet({ kv, key: cacheKeys.ticket_history(ticketId), data: entries });
-};
 
-// ─── delete ───────────────────────────────────────────────────────────────────
+  return;
+};
 
 export const deleteTicketById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -276,20 +227,11 @@ export const deleteTicketById = async (params: {
   kv: KVNamespace;
   projectId: string;
   ticketId: string;
-  requesterId: string;
+  userId: string;
 }) => {
-  const {
-    drizzleClient,
-    supabaseClient,
-    kv,
-    projectId,
-    ticketId,
-    requesterId,
-  } = {
+  const { drizzleClient, supabaseClient, kv, projectId, ticketId, userId } = {
     ...params,
   };
-
-  await verifyProjectExists({ drizzleClient, supabaseClient, projectId });
 
   const ticket = await findTicketById({
     drizzleClient,
@@ -297,7 +239,6 @@ export const deleteTicketById = async (params: {
     ticketId,
     projectId,
   });
-  if (!ticket) throw new Error("Ticket not found");
 
   // only reporter or project owner can delete
   const project = await findProjectById({
@@ -306,22 +247,21 @@ export const deleteTicketById = async (params: {
     projectId,
   });
 
-  const canDelete =
-    ticket.reporterId === requesterId || project!.ownerId === requesterId;
+  const canDelete = ticket.userId === userId || project!.ownerId === userId;
 
-  if (!canDelete) throw new Error("Forbidden");
-
-  await deleteTicket({
-    drizzleClient,
-    supabaseClient,
-    ticketId,
-  });
+  if (!canDelete) throw new ForbiddenError();
 
   await cacheDel({ kv, key: cacheKeys.ticket(ticketId) });
   await cacheDel({ kv, key: cacheKeys.ticket_history(ticketId) });
   await cacheDel({ kv, key: cacheKeys.ticket_state(ticketId) });
   await cacheDel({ kv, key: cacheKeys.project_tickets(projectId) });
   await cacheDel({ kv, key: cacheKeys.ticket_comments(ticketId) });
+
+  await deleteTicket({
+    drizzleClient,
+    supabaseClient,
+    ticketId,
+  });
 
   const updatedTickets = await findTicketsByProjectId({
     drizzleClient,

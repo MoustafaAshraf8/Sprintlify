@@ -13,8 +13,7 @@ import { findProjectMember } from "../model/projectMemberModel";
 import { cacheKeys } from "../cache/cacheKeys";
 import { cacheDel, cacheGet, cacheSet } from "../cache/kvCache";
 import { KVNamespace } from "@cloudflare/workers-types";
-
-// ─── verify helpers ───────────────────────────────────────────────────────────
+import { ForbiddenError } from "../error/AppError";
 
 const verifyMembership = async (params: {
   drizzleClient: DrizzleClientType;
@@ -22,9 +21,7 @@ const verifyMembership = async (params: {
   projectId: string;
   userId: string;
 }) => {
-  const member = await findProjectMember({ ...params });
-  if (!member) throw new Error("Forbidden");
-  return member;
+  return await findProjectMember({ ...params });
 };
 
 const verifyTicketExists = async (params: {
@@ -33,12 +30,8 @@ const verifyTicketExists = async (params: {
   ticketId: string;
   projectId: string;
 }) => {
-  const ticket = await findTicketById({ ...params });
-  if (!ticket) throw new Error("Ticket not found");
-  return ticket;
+  return await findTicketById({ ...params });
 };
-
-// ─── get all ──────────────────────────────────────────────────────────────────
 
 export const getTicketComments = async (params: {
   drizzleClient: DrizzleClientType;
@@ -81,8 +74,6 @@ export const getTicketComments = async (params: {
   return ticketComments;
 };
 
-// ─── create ───────────────────────────────────────────────────────────────────
-
 export const createTicketComment = async (params: {
   drizzleClient: DrizzleClientType;
   supabaseClient: SupabaseClientType;
@@ -109,13 +100,6 @@ export const createTicketComment = async (params: {
     userId: userId,
   });
 
-  await verifyTicketExists({
-    drizzleClient,
-    supabaseClient,
-    ticketId,
-    projectId,
-  });
-
   const ticketComment = await insertTicketComment({
     drizzleClient,
     supabaseClient,
@@ -140,8 +124,6 @@ export const createTicketComment = async (params: {
 
   return ticketComment;
 };
-
-// ─── delete ───────────────────────────────────────────────────────────────────
 
 export const deleteTicketCommentById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -175,7 +157,6 @@ export const deleteTicketCommentById = async (params: {
     commentId,
     ticketId,
   });
-  if (!comment) throw new Error("Comment not found");
 
   const project = await findProjectById({
     drizzleClient,
@@ -185,7 +166,7 @@ export const deleteTicketCommentById = async (params: {
 
   const canDelete = comment.userId === userId || project!.ownerId === userId;
 
-  if (!canDelete) throw new Error("Forbidden");
+  if (!canDelete) throw new ForbiddenError();
 
   await deleteTicketComment({
     drizzleClient,

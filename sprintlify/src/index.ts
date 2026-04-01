@@ -12,13 +12,17 @@ import userRouter from "./route/userRoute";
 import ticketHistoryRouter from "./route/ticketHistoryRoute";
 import sprintRouter from "./route/sprintRoute";
 import backlogRouter from "./route/backlogRoute";
+import { AppError } from "./error/AppError";
+import { StatusCode } from "hono/utils/http-status";
 
 const app = new Hono<AppContext>();
 
 app.use("*", dbAuthMiddleware());
-app.use("*", userAuthMiddleware);
 
 app.route(apiRoute.auth, authRouter);
+
+app.use("*", userAuthMiddleware);
+
 app.route(apiRoute.projects, projectRouter);
 app.route(apiRoute.projectMembers, projectMemberRouter);
 app.route(apiRoute.tickets, ticketRouter);
@@ -33,7 +37,13 @@ app.notFound((c) => {
 });
 
 app.onError((err, c) => {
-  console.error(`[ERROR] ${err.message}`, err.stack);
+  console.error(`[ERROR] ${err.message}`);
+
+  if (err instanceof AppError) {
+    c.status(err.statusCode as StatusCode);
+    return c.json({ message: err.message });
+  }
+
   return c.json({ message: "Internal server error" }, 500);
 });
 

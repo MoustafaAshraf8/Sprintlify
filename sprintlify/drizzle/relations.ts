@@ -16,8 +16,8 @@ export const usersRelations = relations(users, ({many}) => ({
 	tickets_assigneeId: many(tickets, {
 		relationName: "tickets_assigneeId_users_userId"
 	}),
-	tickets_reporterId: many(tickets, {
-		relationName: "tickets_reporterId_users_userId"
+	tickets_userId: many(tickets, {
+		relationName: "tickets_userId_users_userId"
 	}),
 	ticketComments_userId: many(ticketComments, {
 		relationName: "ticketComments_userId_users_userId"
@@ -56,10 +56,10 @@ export const ticketsRelations = relations(tickets, ({one, many}) => ({
 		references: [users.userId],
 		relationName: "tickets_assigneeId_users_userId"
 	}),
-	user_reporterId: one(users, {
-		fields: [tickets.reporterId],
+	user_userId: one(users, {
+		fields: [tickets.userId],
 		references: [users.userId],
-		relationName: "tickets_reporterId_users_userId"
+		relationName: "tickets_userId_users_userId"
 	}),
 	project: one(projects, {
 		fields: [tickets.projectId],

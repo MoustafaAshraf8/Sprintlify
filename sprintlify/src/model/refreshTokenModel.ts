@@ -2,6 +2,7 @@ import { eq, and } from "drizzle-orm";
 import { refreshTokens } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
+import { dbQuery } from "../helper/dbQuery";
 
 export const findRefreshToken = async (params: {
   drizzleClient: DrizzleClientType;
@@ -10,11 +11,13 @@ export const findRefreshToken = async (params: {
 }) => {
   const { drizzleClient, token } = { ...params };
 
-  const result = await drizzleClient
-    .select()
-    .from(refreshTokens)
-    .where(eq(refreshTokens.token, token))
-    .limit(1);
+  const result = await dbQuery(() =>
+    drizzleClient
+      .select()
+      .from(refreshTokens)
+      .where(eq(refreshTokens.token, token))
+      .limit(1),
+  );
 
   return result[0] ?? null;
 };
@@ -30,15 +33,14 @@ export const insertRefreshToken = async (params: {
 }) => {
   const { drizzleClient, data } = { ...params };
 
-  const result = await drizzleClient
-    .insert(refreshTokens)
-    .values(data)
-    .returning({
+  const result = await dbQuery(() =>
+    drizzleClient.insert(refreshTokens).values(data).returning({
       id: refreshTokens.id,
       userId: refreshTokens.userId,
       expiresAt: refreshTokens.expiresAt,
       createdAt: refreshTokens.createdAt,
-    });
+    }),
+  );
 
   return result[0];
 };
@@ -50,9 +52,9 @@ export const deleteRefreshToken = async (params: {
 }) => {
   const { drizzleClient, token } = { ...params };
 
-  await drizzleClient
-    .delete(refreshTokens)
-    .where(eq(refreshTokens.token, token));
+  return await dbQuery(() =>
+    drizzleClient.delete(refreshTokens).where(eq(refreshTokens.token, token)),
+  );
 };
 
 export const deleteAllUserRefreshTokens = async (params: {
@@ -62,7 +64,7 @@ export const deleteAllUserRefreshTokens = async (params: {
 }) => {
   const { drizzleClient, userId } = { ...params };
 
-  await drizzleClient
-    .delete(refreshTokens)
-    .where(eq(refreshTokens.userId, userId));
+  return await dbQuery(() =>
+    drizzleClient.delete(refreshTokens).where(eq(refreshTokens.userId, userId)),
+  );
 };

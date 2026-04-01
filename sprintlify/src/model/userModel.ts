@@ -1,11 +1,10 @@
-// model/userModel.ts
 import { eq } from "drizzle-orm";
 import { users } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
 import { UpdateUserDtoType } from "../dto/userDto";
-
-// ─── find all ─────────────────────────────────────────────────────────────────
+import { dbQuery } from "../helper/dbQuery";
+import { NotFoundError } from "../error/AppError";
 
 export const findAllUsers = async (params: {
   drizzleClient: DrizzleClientType;
@@ -13,21 +12,23 @@ export const findAllUsers = async (params: {
 }) => {
   const { drizzleClient } = { ...params };
 
-  return await drizzleClient
-    .select({
-      userId: users.userId,
-      email: users.email,
-      username: users.username,
-      avatarUrl: users.avatarUrl,
-      bio: users.bio,
-      nickname: users.nickname,
-      securityLevel: users.securityLevel,
-      createdAt: users.createdAt,
-    })
-    .from(users);
-};
+  const result = await dbQuery(() =>
+    drizzleClient
+      .select({
+        userId: users.userId,
+        email: users.email,
+        username: users.username,
+        avatarUrl: users.avatarUrl,
+        bio: users.bio,
+        nickname: users.nickname,
+        securityLevel: users.securityLevel,
+        createdAt: users.createdAt,
+      })
+      .from(users),
+  );
 
-// ─── find by id ───────────────────────────────────────────────────────────────
+  return result;
+};
 
 export const findUserById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -36,26 +37,28 @@ export const findUserById = async (params: {
 }) => {
   const { drizzleClient, userId } = { ...params };
 
-  const result = await drizzleClient
-    .select({
-      userId: users.userId,
-      email: users.email,
-      username: users.username,
-      avatarUrl: users.avatarUrl,
-      bio: users.bio,
-      nickname: users.nickname,
-      securityLevel: users.securityLevel,
-      createdAt: users.createdAt,
-      updatedAt: users.updatedAt,
-    })
-    .from(users)
-    .where(eq(users.userId, userId))
-    .limit(1);
+  const result = await dbQuery(() =>
+    drizzleClient
+      .select({
+        userId: users.userId,
+        email: users.email,
+        username: users.username,
+        avatarUrl: users.avatarUrl,
+        bio: users.bio,
+        nickname: users.nickname,
+        securityLevel: users.securityLevel,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(eq(users.userId, userId))
+      .limit(1),
+  );
 
-  return result[0] ?? null;
+  if (!result[0]) throw new NotFoundError();
+
+  return result[0];
 };
-
-// ─── find by email ────────────────────────────────────────────────────────────
 
 export const findUserByEmail = async (params: {
   drizzleClient: DrizzleClientType;
@@ -64,16 +67,14 @@ export const findUserByEmail = async (params: {
 }) => {
   const { drizzleClient, email } = { ...params };
 
-  const result = await drizzleClient
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const result = await dbQuery(() =>
+    drizzleClient.select().from(users).where(eq(users.email, email)).limit(1),
+  );
 
-  return result[0] ?? null;
+  if (!result[0]) throw new NotFoundError();
+
+  return result[0];
 };
-
-// ─── insert ───────────────────────────────────────────────────────────────────
 
 export const insertUser = async (params: {
   drizzleClient: DrizzleClientType;
@@ -87,18 +88,18 @@ export const insertUser = async (params: {
 }) => {
   const { drizzleClient, data } = { ...params };
 
-  const result = await drizzleClient.insert(users).values(data).returning({
-    userId: users.userId,
-    email: users.email,
-    username: users.username,
-    securityLevel: users.securityLevel,
-    createdAt: users.createdAt,
-  });
+  const result = await dbQuery(() =>
+    drizzleClient.insert(users).values(data).returning({
+      userId: users.userId,
+      email: users.email,
+      username: users.username,
+      securityLevel: users.securityLevel,
+      createdAt: users.createdAt,
+    }),
+  );
 
   return result[0];
 };
-
-// ─── update ───────────────────────────────────────────────────────────────────
 
 export const updateUser = async (params: {
   drizzleClient: DrizzleClientType;
@@ -108,19 +109,23 @@ export const updateUser = async (params: {
 }) => {
   const { drizzleClient, userId, data } = { ...params };
 
-  const result = await drizzleClient
-    .update(users)
-    .set(data)
-    .where(eq(users.userId, userId))
-    .returning({
-      userId: users.userId,
-      email: users.email,
-      username: users.username,
-      avatarUrl: users.avatarUrl,
-      bio: users.bio,
-      nickname: users.nickname,
-      updatedAt: users.updatedAt,
-    });
+  const result = await dbQuery(() =>
+    drizzleClient
+      .update(users)
+      .set(data)
+      .where(eq(users.userId, userId))
+      .returning({
+        userId: users.userId,
+        email: users.email,
+        username: users.username,
+        avatarUrl: users.avatarUrl,
+        bio: users.bio,
+        nickname: users.nickname,
+        updatedAt: users.updatedAt,
+      }),
+  );
 
-  return result[0] ?? null;
+  if (!result[0]) throw new NotFoundError();
+
+  return result[0];
 };

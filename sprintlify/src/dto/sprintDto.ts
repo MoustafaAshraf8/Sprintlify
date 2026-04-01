@@ -7,6 +7,18 @@ export const CreateSprintDto = z
     startDate: z.string().date(), // expects "YYYY-MM-DD"
     endDate: z.string().date(), // expects "YYYY-MM-DD"
   })
+  .refine(
+    (data) => {
+      const start = new Date(data.startDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // normalize to midnight so today is valid
+      return start >= today;
+    },
+    {
+      message: "Start date must be today or in the future",
+      path: ["startDate"],
+    },
+  )
   .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
     message: "End date must be after start date",
     path: ["endDate"],

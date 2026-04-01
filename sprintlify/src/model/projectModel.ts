@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import { projects, projectMembers } from "../../drizzle/schema";
 import { DrizzleClientType } from "../types/drizzleClientType";
 import { SupabaseClientType } from "../types/supabaseClientType";
-
-// ─── find all by user ─────────────────────────────────────────────────────────
+import { dbQuery } from "../helper/dbQuery";
+import { DatabaseError, NotFoundError } from "../error/AppError";
 
 export const findProjectsByUserId = async (params: {
   drizzleClient: DrizzleClientType;
@@ -12,7 +12,7 @@ export const findProjectsByUserId = async (params: {
 }) => {
   const { drizzleClient, userId } = { ...params };
 
-  return await drizzleClient
+  return await dbQuery(()=>drizzleClient
     .select({
       projectId: projects.projectId,
       name: projects.name,
@@ -23,10 +23,8 @@ export const findProjectsByUserId = async (params: {
     })
     .from(projects)
     .innerJoin(projectMembers, eq(projects.projectId, projectMembers.projectId))
-    .where(eq(projectMembers.userId, userId));
+    .where(eq(projectMembers.userId, userId)));
 };
-
-// ─── find by id ───────────────────────────────────────────────────────────────
 
 export const findProjectById = async (params: {
   drizzleClient: DrizzleClientType;
@@ -34,17 +32,14 @@ export const findProjectById = async (params: {
   projectId: string;
 }) => {
   const { drizzleClient, projectId } = { ...params };
-
-  const result = await drizzleClient
+  const result = await dbQuery(()=>drizzleClient
     .select()
     .from(projects)
-    .where(eq(projects.projectId, projectId))
-    .limit(1);
+    .where(eq(projects.projectId, projectId)));
 
-  return result[0] ?? null;
+    if (!result[0]) throw new NotFoundError();
+  return result[0];
 };
-
-// ─── insert ───────────────────────────────────────────────────────────────────
 
 export const insertProject = async (params: {
   drizzleClient: DrizzleClientType;
@@ -57,18 +52,16 @@ export const insertProject = async (params: {
 }) => {
   const { drizzleClient, data } = { ...params };
 
-  const result = await drizzleClient.insert(projects).values(data).returning({
+  const result = await dbQuery(()=>drizzleClient.insert(projects).values(data).returning({
     projectId: projects.projectId,
     name: projects.name,
     description: projects.description,
     ownerId: projects.ownerId,
     createdAt: projects.createdAt,
-  });
+  }));
 
   return result[0];
 };
-
-// ─── update ───────────────────────────────────────────────────────────────────
 
 export const updateProject = async (params: {
   drizzleClient: DrizzleClientType;
@@ -81,7 +74,7 @@ export const updateProject = async (params: {
 }) => {
   const { drizzleClient, projectId, data } = { ...params };
 
-  const result = await drizzleClient
+  const result = await dbQuery(()=>drizzleClient
     .update(projects)
     .set(data)
     .where(eq(projects.projectId, projectId))
@@ -91,12 +84,14 @@ export const updateProject = async (params: {
       description: projects.description,
       ownerId: projects.ownerId,
       updatedAt: projects.updatedAt,
-    });
+    }));
 
-  return result[0] ?? null;
+    if(!result[0]){
+      throw new DatabaseError();
+    }
+
+  return result[0];
 };
-
-// ─── delete ───────────────────────────────────────────────────────────────────
 
 export const deleteProject = async (params: {
   drizzleClient: DrizzleClientType;
@@ -105,5 +100,5 @@ export const deleteProject = async (params: {
 }) => {
   const { drizzleClient, projectId } = { ...params };
 
-  await drizzleClient.delete(projects).where(eq(projects.projectId, projectId));
+  await dbQuery(()=>drizzleClient.delete(projects).where(eq(projects.projectId, projectId)));
 };

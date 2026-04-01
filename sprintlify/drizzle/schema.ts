@@ -89,6 +89,23 @@ export const sprints = pgTable("sprints", {
 	check("sprints_duration_check", sql`((end_date - start_date) >= 1) AND ((end_date - start_date) <= 30)`),
 ]);
 
+export const users = pgTable("users", {
+	email: text().notNull(),
+	username: text().notNull(),
+	avatarUrl: text("avatar_url"),
+	bio: text(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	nickname: text(),
+	passwordHash: text("password_hash").notNull(),
+	securityLevel: text("security_level").default('member'),
+	userId: uuid("user_id").defaultRandom().primaryKey().notNull(),
+}, (table) => [
+	unique("users_email_key").on(table.email),
+	unique("users_username_key").on(table.username),
+	check("users_security_level_check", sql`security_level = ANY (ARRAY['admin'::text, 'member'::text])`),
+]);
+
 export const tickets = pgTable("tickets", {
 	ticketId: uuid("ticket_id").defaultRandom().primaryKey().notNull(),
 	title: text().notNull(),
@@ -97,7 +114,7 @@ export const tickets = pgTable("tickets", {
 	status: text().default('open'),
 	label: text(),
 	assigneeId: uuid("assignee_id"),
-	reporterId: uuid("reporter_id"),
+	userId: uuid("user_id"),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	projectId: uuid("project_id"),
@@ -111,7 +128,7 @@ export const tickets = pgTable("tickets", {
 			name: "tickets_users_assignee_fk"
 		}).onUpdate("cascade").onDelete("set null"),
 	foreignKey({
-			columns: [table.reporterId],
+			columns: [table.userId],
 			foreignColumns: [users.userId],
 			name: "tickets_users_reporter_fk"
 		}).onUpdate("cascade").onDelete("set null"),
@@ -128,23 +145,6 @@ export const tickets = pgTable("tickets", {
 	check("tickets_priority_check", sql`priority = ANY (ARRAY['critical'::text, 'high'::text, 'medium'::text, 'low'::text])`),
 	check("tickets_status_check", sql`status = ANY (ARRAY['open'::text, 'in progress'::text, 'review'::text, 'closed'::text])`),
 	check("tickets_label_check", sql`label = ANY (ARRAY['bug'::text, 'feature'::text, 'infra'::text, 'docs'::text, 'security'::text, 'perf'::text])`),
-]);
-
-export const users = pgTable("users", {
-	email: text().notNull(),
-	username: text().notNull(),
-	avatarUrl: text("avatar_url"),
-	bio: text(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	nickname: text(),
-	passwordHash: text("password_hash").notNull(),
-	securityLevel: text("security_level").default('member'),
-	userId: uuid("user_id").defaultRandom().primaryKey().notNull(),
-}, (table) => [
-	unique("users_email_key").on(table.email),
-	unique("users_username_key").on(table.username),
-	check("users_security_level_check", sql`security_level = ANY (ARRAY['admin'::text, 'member'::text])`),
 ]);
 
 export const ticketComments = pgTable("ticket_comments", {
