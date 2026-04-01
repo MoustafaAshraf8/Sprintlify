@@ -1,0 +1,740 @@
+{
+  "info": {
+    "_postman_id": "9218c5fd-928d-4db6-b54a-b749f7496f6e",
+    "name": "Sprintlify",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "23415212"
+  },
+  "item": [
+    {
+      "name": "projects",
+      "item": [
+        {
+          "name": "get project by id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc5NTYxN30.NR58stwzaMHML_OvCpS4ImeSrHYlqA0EaDzBrAQMLic",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/0a51ddb0-bf58-4ac6-acd8-7a42f6386211",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "0a51ddb0-bf58-4ac6-acd8-7a42f6386211"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update project by id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc4NjM3Mn0.QYQOCLSFRqlbdKjFAwYVupj6TmCYXRSmgAMVownjC-c",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"description\":\"updated description ✔\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all projects",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDk1ODQ2NH0.I6FFnvu5XQJ1bwiMk-YCUPgaSOkTwdqL0NlpJlnn7jk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create project",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc5Mzc4Nn0.4DHZ4CvUZr3IjWQYA8--Yu2EGiqL3f3n2PM9l-7Ty8s",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\":\"devops project\",\r\n    \"description\":\"test description\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete project by id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc5MzMyNH0._cyBGpjSNTgRhKiaw7AS3RUy5M4PCu713ZXfjBpthwc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/063214d8-3ec5-49b3-a352-ac8e6033f7ed",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "063214d8-3ec5-49b3-a352-ac8e6033f7ed"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "project members",
+      "item": [
+        {
+          "name": "get project members",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc5NTgwOX0.BLwLEMwAg1g0Njz6sZQqfiCSkGjRiX7c5AvNDeBonxU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/0a51ddb0-bf58-4ac6-acd8-7a42f6386211/members",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "0a51ddb0-bf58-4ac6-acd8-7a42f6386211",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add project member",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc5NTgwOX0.BLwLEMwAg1g0Njz6sZQqfiCSkGjRiX7c5AvNDeBonxU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"userId\":\"565c94fb-89f0-4c54-9d3e-3384b6c376ee\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/0a51ddb0-bf58-4ac6-acd8-7a42f6386211/members",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "0a51ddb0-bf58-4ac6-acd8-7a42f6386211",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete project member",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDc5NTgwOX0.BLwLEMwAg1g0Njz6sZQqfiCSkGjRiX7c5AvNDeBonxU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/0a51ddb0-bf58-4ac6-acd8-7a42f6386211/members/00000000-0000-0000-0000-000000000009",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "0a51ddb0-bf58-4ac6-acd8-7a42f6386211",
+                "members",
+                "00000000-0000-0000-0000-000000000009"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "sprint",
+      "item": [
+        {
+          "name": "create sprint",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"sprintName\": \"Sprint 6\",\r\n  \"goal\": \"Improve onboarding flow and fix edge cases x3\",\r\n  \"startDate\": \"2026-03-31\",\r\n  \"endDate\": \"2026-04-14\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get project sprints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get sprint by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/2cf73675-dd74-4367-a04c-7763f52b0e33",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "2cf73675-dd74-4367-a04c-7763f52b0e33"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update sprint",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"sprintName\": \"Sprint 4444444444\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/65c54081-60b3-4eca-915f-b06199841627",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "65c54081-60b3-4eca-915f-b06199841627"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete sprint",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"sprintName\": \"Sprint 4444444444\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/75acec47-806c-4590-83bc-a31a326fe999",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "75acec47-806c-4590-83bc-a31a326fe999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "start sprint",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/2cf73675-dd74-4367-a04c-7763f52b0e33/start",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "2cf73675-dd74-4367-a04c-7763f52b0e33",
+                "start"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "end sprint",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/2cf73675-dd74-4367-a04c-7763f52b0e33/complete",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "2cf73675-dd74-4367-a04c-7763f52b0e33",
+                "complete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get active sprints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/active",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "active"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "remove ticket from sprint",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8787/api/projects/00000000-0000-0000-0001-000000000001/sprints/2cf73675-dd74-4367-a04c-7763f52b0e33/tickets/00000000-0000-0000-0002-000000000004",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8787",
+              "path": [
+                "api",
+                "projects",
+                "00000000-0000-0000-0001-000000000001",
+                "sprints",
+                "2cf73675-dd74-4367-a04c-7763f52b0e33",
+                "tickets",
+                "00000000-0000-0000-0002-000000000004"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDk4NTQ2MH0.ou6rK57TW87q_ForDlFj1nMkzJa3KTA6XvtP_LS05NI",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "tickets",
+      "item": [
+        {
+          "name": "reserve ticket",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlY3VyaXR5TGV2ZWwiOiJhZG1pbiIsImV4cCI6MTc3NDk4NTQ2MH0.ou6rK57TW87q_ForDlFj1nMkzJa3KTA6XvtP_LS05NI",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"admin@sprintlify.com\",\r\n    \"password\": \"Admin123!\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8787/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8787",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"test@gmail.com\",\r\n    \"username\":\"john test\",\r\n    \"password\":\"Member123!\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8787/api/auth/register",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8787",
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
